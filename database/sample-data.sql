@@ -78,3 +78,14 @@ INSERT OR REPLACE INTO race (race_name, category, sex, year, start_date, end_dat
 ('Paris-Roubaix', 'Monuments and Worlds', 'm', 2024, '2024-04-07', '2024-04-07'),
 ('Tour of Flanders', 'Monuments and Worlds', 'm', 2024, '2024-03-31', '2024-03-31'),
 ('Liège-Bastogne-Liège', 'Monuments and Worlds', 'm', 2024, '2024-04-21', '2024-04-21');
+
+INSERT OR REPLACE INTO player_team(
+    team_id,
+    player_id,
+    sex,
+    year,
+    team_name,
+    is_valid) VALUES
+(1, 1, 'm', 2024, 'Team A', 1),
+(2, 1, 'f', 2024, 'Team B', 1
+)

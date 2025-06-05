@@ -13,22 +13,23 @@ const IndexPage = () => {
   const [sortBy, setSortBy] = useState('score')
   const [sortOrder, setSortOrder] = useState('desc')
 
-  const fetchRankings = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`http://localhost:8001/api/teams/${year}/${sex}/rankings`)
-      const data = await response.json()
-      setRankings(data)
-    } catch (error) {
-      console.error('Error fetching rankings:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   useEffect(() => {
+    const fetchRankings = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`http://localhost:8001/api/teams/${year}/${sex}/rankings`)
+        const data = await response.json()
+        setRankings(data)
+      } catch (error) {
+        console.error('Error fetching rankings:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     fetchRankings()
-  }, [year, sex, fetchRankings])
+  }, [year, sex])
 
   const sortedRankings = [...rankings].sort((a, b) => {
     let aVal = a[sortBy]
