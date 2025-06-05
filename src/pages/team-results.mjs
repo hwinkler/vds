@@ -116,7 +116,7 @@ const TeamResults = () => {
           </label>
         </div>
 
-        // TODO re-enable no-nested-ternary
+        {/* // TODO re-enable no-nested-ternary */}
 
         {loading ? (
           <p>Loading team results...</p>

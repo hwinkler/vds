@@ -77,7 +77,7 @@ const Races = () => {
 
         <h2>Race Calendar - {sex === 'm' ? 'Men' : 'Women'} {year}</h2>
 
-        // TODO re-enable no-nested-ternary
+        {/* // TODO re-enable no-nested-ternary */}
         {loading ? (
           <p>Loading races...</p>
         ) : Object.keys(groupedRaces).length > 0 ? (
