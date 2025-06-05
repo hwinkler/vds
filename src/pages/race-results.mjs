@@ -5,12 +5,35 @@ import {Link} from 'gatsby'
 import Layout from '../components/layout'
 import Seo from '../components/seo'
 
+const {URLSearchParams, fetch, console, window} = globalThis
 const RaceResults = () => {
   const [raceResults, setRaceResults] = useState({results: [], jerseys: []})
   const [raceInfo, setRaceInfo] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const fetchRaceResults = async raceId => {
+      try {
+        setLoading(true)
+        const response = await fetch(`http://localhost:8001/api/races/${raceId}/results`)
+        const data = await response.json()
+
+        setRaceResults(data)
+
+        // Mock race info - in real app this would come from the API
+        setRaceInfo({
+          race_name: 'Tour de France',
+          category: 'Grand Tours',
+          start_date: '2024-07-01',
+          end_date: '2024-07-23'
+        })
+      } catch (error) {
+        console.error('Error fetching race results:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     const urlParams = new URLSearchParams(window.location.search)
     const raceId = urlParams.get('race_id')
 
@@ -19,27 +42,6 @@ const RaceResults = () => {
     }
   }, [])
 
-  const fetchRaceResults = async raceId => {
-    try {
-      setLoading(true)
-      const response = await fetch(`http://localhost:8001/api/races/${raceId}/results`)
-      const data = await response.json()
-
-      setRaceResults(data)
-
-      // Mock race info - in real app this would come from the API
-      setRaceInfo({
-        race_name: 'Tour de France',
-        category: 'Grand Tours',
-        start_date: '2024-07-01',
-        end_date: '2024-07-23'
-      })
-    } catch (error) {
-      console.error('Error fetching race results:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const groupResultsByStage = results => results.reduce((groups, result) => {
     const stage = result.stage_number
@@ -91,13 +93,18 @@ const RaceResults = () => {
               <div style={{marginBottom: '30px'}}>
                 <h1>{raceInfo.race_name}</h1>
                 <p><strong>Category:</strong> {raceInfo.category}</p>
-                <p><strong>Date:</strong> {new Date(raceInfo.start_date).toLocaleDateString()} - {new Date(raceInfo.end_date).toLocaleDateString()}</p>
+                <p>
+                  <strong>Date:</strong> {new Date(raceInfo.start_date).toLocaleDateString()} -
+                  {new Date(raceInfo.end_date).toLocaleDateString()}
+                </p>
               </div>
             )}
 
             {stages.length > 0 ? (
               stages.map(stageNumber => (
-                <div key={stageNumber} style={{marginBottom: '40px', border: '1px solid #ddd', padding: '15px'}}>
+                <div
+                  key={stageNumber}
+                  style={{marginBottom: '40px', border: '1px solid #ddd', padding: '15px'}}>
                   <h2 style={{borderBottom: '2px solid #2196f3', paddingBottom: '10px'}}>
                     Stage {stageNumber}
                   </h2>
@@ -105,24 +112,40 @@ const RaceResults = () => {
                   {stageResults[stageNumber] && stageResults[stageNumber].length > 0 && (
                     <div style={{marginBottom: '20px'}}>
                       <h3>Stage Finishers</h3>
-                      <table style={{width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd'}}>
+                      <table style={{
+                        width: '100%',
+                        borderCollapse: 'collapse',
+                        border: '1px solid #ddd'
+                      }}>
                         <thead>
                           <tr style={{backgroundColor: '#f5f5f5'}}>
-                            <th style={{padding: '8px', border: '1px solid #ddd'}}>Position</th>
-                            <th style={{padding: '8px', border: '1px solid #ddd'}}>Rider</th>
-                            <th style={{padding: '8px', border: '1px solid #ddd'}}>Points Awarded</th>
+                            <th style={{padding: '8px', border: '1px solid #ddd'}}>
+                              Position
+                            </th>
+                            <th style={{padding: '8px', border: '1px solid #ddd'}}>
+                              Rider
+                            </th>
+                            <th style={{padding: '8px', border: '1px solid #ddd'}}>
+                              Points Awarded
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {stageResults[stageNumber]
                             .sort((a, b) => a.finish_position - b.finish_position)
                             .map((result, index) => (
-                              <tr key={index} style={{backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white'}}>
-                                <td style={{padding: '8px', border: '1px solid #ddd', textAlign: 'center'}}>
+                              <tr
+                                key={index}
+                                style={{backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white'}}>
+                                <td
+                                  style={{padding: '8px', border: '1px solid #ddd', textAlign: 'center'}}>
                                   {result.finish_position}
                                 </td>
-                                <td style={{padding: '8px', border: '1px solid #ddd'}}>{result.rider_name}</td>
-                                <td style={{padding: '8px', border: '1px solid #ddd', textAlign: 'center'}}>
+                                <td style={{padding: '8px', border: '1px solid #ddd'}}>
+                                  {result.rider_name}
+                                </td>
+                                <td
+                                  style={{padding: '8px', border: '1px solid #ddd', textAlign: 'center'}}>
                                   {result.points_awarded}
                                 </td>
                               </tr>
@@ -137,7 +160,11 @@ const RaceResults = () => {
                       {stageJerseys[stageNumber].intermediate.length > 0 && (
                         <div style={{marginBottom: '15px'}}>
                           <h4>Intermediate Jersey Holders</h4>
-                          <table style={{width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd'}}>
+                          <table style={{
+                            width: '100%',
+                            borderCollapse: 'collapse',
+                            border: '1px solid #ddd'
+                          }}>
                             <thead>
                               <tr style={{backgroundColor: '#fff3e0'}}>
                                 <th style={{padding: '8px', border: '1px solid #ddd'}}>Jersey Type</th>
@@ -149,10 +176,12 @@ const RaceResults = () => {
                               {stageJerseys[stageNumber].intermediate.map((jersey, index) => (
                                 <tr key={index} style={{backgroundColor: index % 2 === 0 ? '#fffbf0' : 'white'}}>
                                   <td style={{padding: '8px', border: '1px solid #ddd'}}>
-                                    {jersey.jersey_type.charAt(0).toUpperCase() + jersey.jersey_type.slice(1)}
+                                    {jersey.jersey_type.charAt(0).toUpperCase() +
+                                     jersey.jersey_type.slice(1)}
                                   </td>
                                   <td style={{padding: '8px', border: '1px solid #ddd'}}>{jersey.rider_name}</td>
-                                  <td style={{padding: '8px', border: '1px solid #ddd', textAlign: 'center'}}>
+                                  <td
+                                    style={{padding: '8px', border: '1px solid #ddd', textAlign: 'center'}}>
                                     {jersey.points_awarded}
                                   </td>
                                 </tr>
@@ -165,7 +194,11 @@ const RaceResults = () => {
                       {stageJerseys[stageNumber].final.length > 0 && (
                         <div>
                           <h4>Final Jersey Winners</h4>
-                          <table style={{width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd'}}>
+                          <table style={{
+                            width: '100%',
+                            borderCollapse: 'collapse',
+                            border: '1px solid #ddd'
+                          }}>
                             <thead>
                               <tr style={{backgroundColor: '#e8f5e8'}}>
                                 <th style={{padding: '8px', border: '1px solid #ddd'}}>Jersey Type</th>
@@ -175,14 +208,20 @@ const RaceResults = () => {
                             </thead>
                             <tbody>
                               {stageJerseys[stageNumber].final.map((jersey, index) => (
-                                <tr key={index} style={{backgroundColor: index % 2 === 0 ? '#f0f8f0' : 'white'}}>
+                                <tr
+                                  key={index}
+                                  style={{backgroundColor: index % 2 === 0 ? '#f0f8f0' : 'white'}}>
                                   <td style={{padding: '8px', border: '1px solid #ddd'}}>
-                                    <strong>{jersey.jersey_type.charAt(0).toUpperCase() + jersey.jersey_type.slice(1)}</strong>
+                                    <strong>
+                                      {jersey.jersey_type.charAt(0).toUpperCase() +
+                                       jersey.jersey_type.slice(1)}
+                                    </strong>
                                   </td>
                                   <td style={{padding: '8px', border: '1px solid #ddd'}}>
                                     <strong>{jersey.rider_name}</strong>
                                   </td>
-                                  <td style={{padding: '8px', border: '1px solid #ddd', textAlign: 'center'}}>
+                                  <td
+                                    style={{padding: '8px', border: '1px solid #ddd', textAlign: 'center'}}>
                                     <strong>{jersey.points_awarded}</strong>
                                   </td>
                                 </tr>
@@ -198,7 +237,9 @@ const RaceResults = () => {
             ) : (
               <div>
                 <p>No results available for this race yet.</p>
-                <p>Results will appear here once the race stages are completed and results are entered.</p>
+                <p>
+                  Results will appear here once the race stages are completed and results are entered.
+                </p>
               </div>
             )}
           </div>

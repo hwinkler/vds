@@ -5,6 +5,8 @@ import {Link} from 'gatsby'
 import Layout from '../components/layout'
 import Seo from '../components/seo'
 
+const {fetch, console} = globalThis
+
 const IndexPage = () => {
   const [rankings, setRankings] = useState([])
   const [loading, setLoading] = useState(true)
@@ -71,7 +73,8 @@ const IndexPage = () => {
         <div style={{marginBottom: '20px'}}>
           <label style={{marginRight: '10px'}}>
             Year:
-            <select value={year} onChange={e => setYear(parseInt(e.target.value))} style={{marginLeft: '5px'}}>
+            <select value={year}
+              onChange={e => setYear(parseInt(e.target.value))} style={{marginLeft: '5px'}}>
               <option value={2024}>2024</option>
               <option value={2023}>2023</option>
             </select>
@@ -94,20 +97,24 @@ const IndexPage = () => {
           <table style={{width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd'}}>
             <thead>
               <tr style={{backgroundColor: '#f5f5f5'}}>
-                <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('player_name')}>
+                <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}}
+                  onClick={() => handleSort('player_name')}>
                   Player Name {sortBy === 'player_name' && (sortOrder === 'asc' ? '↑' : '↓')}
                 </th>
-                <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('team_name')}>
+                <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}}
+                  onClick={() => handleSort('team_name')}>
                   Team Name {sortBy === 'team_name' && (sortOrder === 'asc' ? '↑' : '↓')}
                 </th>
-                <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('total_score')}>
+                <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}}
+                  onClick={() => handleSort('total_score')}>
                   Total Score {sortBy === 'total_score' && (sortOrder === 'asc' ? '↑' : '↓')}
                 </th>
               </tr>
             </thead>
             <tbody>
               {sortedRankings.map((team, index) => (
-                <tr key={team.team_id} style={{backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white'}}>
+                <tr key={team.team_id}
+                  style={{backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white'}}>
                   <td style={{padding: '10px', border: '1px solid #ddd'}}>{team.player_name}</td>
                   <td style={{padding: '10px', border: '1px solid #ddd'}}>
                     <Link to={`/team-results?team_id=${team.team_id}`}>
@@ -124,7 +131,9 @@ const IndexPage = () => {
         )}
 
         {!loading && rankings.length === 0 && (
-          <p>No teams found for {sex === 'm' ? 'Men' : 'Women'} {year}. Teams will appear here once they are created and validated.</p>
+          <p>No teams found for {sex === 'm' ? 'Men' : 'Women'} {year}.
+            Teams will appear here once they are created and validated.
+          </p>
         )}
       </div>
     </Layout>

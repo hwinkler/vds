@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import * as React from 'react'
 import {useState, useEffect} from 'react'
 import {Link} from 'gatsby'
@@ -5,6 +6,7 @@ import {Link} from 'gatsby'
 import Layout from '../components/layout'
 import Seo from '../components/seo'
 
+const {fetch, console} = globalThis
 const Races = () => {
   const [races, setRaces] = useState([])
   const [loading, setLoading] = useState(true)
@@ -55,7 +57,10 @@ const Races = () => {
         <div style={{marginBottom: '20px'}}>
           <label style={{marginRight: '10px'}}>
             Year:
-            <select value={year} onChange={e => setYear(parseInt(e.target.value))} style={{marginLeft: '5px'}}>
+            <select
+              value={year}
+              onChange={e => setYear(parseInt(e.target.value))}
+              style={{marginLeft: '5px'}}>
               <option value={2024}>2024</option>
               <option value={2023}>2023</option>
             </select>
@@ -72,6 +77,7 @@ const Races = () => {
 
         <h2>Race Calendar - {sex === 'm' ? 'Men' : 'Women'} {year}</h2>
 
+        // TODO re-enable no-nested-ternary
         {loading ? (
           <p>Loading races...</p>
         ) : Object.keys(groupedRaces).length > 0 ? (
@@ -86,26 +92,48 @@ const Races = () => {
                 }}>
                   {category}
                 </h3>
-                <table style={{width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd', marginBottom: '20px'}}>
+                <table style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  border: '1px solid #ddd',
+                  marginBottom: '20px'
+                }}>
                   <thead>
                     <tr style={{backgroundColor: '#f5f5f5'}}>
-                      <th style={{padding: '10px', border: '1px solid #ddd', textAlign: 'left'}}>Race Name</th>
-                      <th style={{padding: '10px', border: '1px solid #ddd', textAlign: 'left'}}>Start Date</th>
-                      <th style={{padding: '10px', border: '1px solid #ddd', textAlign: 'left'}}>End Date</th>
-                      <th style={{padding: '10px', border: '1px solid #ddd', textAlign: 'center'}}>Results</th>
+                      <th
+                        style={{padding: '10px', border: '1px solid #ddd', textAlign: 'left'}}>
+                        Race Name
+                      </th>
+                      <th
+                        style={{padding: '10px', border: '1px solid #ddd', textAlign: 'left'}}>
+                        Start Date
+                      </th>
+                      <th
+                        style={{padding: '10px', border: '1px solid #ddd', textAlign: 'left'}}>
+                        End Date
+                      </th>
+                      <th
+                        style={{padding: '10px', border: '1px solid #ddd', textAlign: 'center'}}>
+                        Results
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {categoryRaces.map((race, index) => (
-                      <tr key={race.race_id} style={{backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white'}}>
-                        <td style={{padding: '10px', border: '1px solid #ddd'}}>{race.race_name}</td>
+                      <tr
+                        key={race.race_id}
+                        style={{backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white'}}>
+                        <td style={{padding: '10px', border: '1px solid #ddd'}}>
+                          {race.race_name}
+                        </td>
                         <td style={{padding: '10px', border: '1px solid #ddd'}}>
                           {race.start_date ? new Date(race.start_date).toLocaleDateString() : 'TBD'}
                         </td>
                         <td style={{padding: '10px', border: '1px solid #ddd'}}>
                           {race.end_date ? new Date(race.end_date).toLocaleDateString() : 'TBD'}
                         </td>
-                        <td style={{padding: '10px', border: '1px solid #ddd', textAlign: 'center'}}>
+                        <td
+                          style={{padding: '10px', border: '1px solid #ddd', textAlign: 'center'}}>
                           <Link
                             to={`/race-results?race_id=${race.race_id}`}
                             style={{

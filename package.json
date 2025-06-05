@@ -1,9 +1,9 @@
 {
   "name": "vds",
   "private": true,
-  "description": "A simple starter to get up and developing quickly with Gatsby",
+  "description": "The Virtual Directeur Sportif",
   "version": "0.1.0",
-  "author": "Kyle Mathews <mathews.kyle@gmail.com>",
+  "author": "Hugh Winkler<hughw@hughw.net>",
   "packageManager": "yarn@4.9.2",
   "dependencies": {
     "@babel/core": "^7.27.4",
@@ -32,7 +32,6 @@
   "devDependencies": {
     "@eslint/compat": "^1.2.9",
     "@eslint/js": "^9.28.0",
-    "eslint-plugin-babel": "^5.3.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "prettier": "^2.8.8"
@@ -49,7 +48,7 @@
     "serve": "gatsby serve",
     "clean": "gatsby clean",
     "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1",
-    "api": "node src/api/index.js",
+    "api": "node src/api/index.mjs",
     "dev": "concurrently \"yarn run develop\" \"yarn run api\"",
     "db:init": "node database/init.js"
   },

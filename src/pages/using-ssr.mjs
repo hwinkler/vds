@@ -4,6 +4,8 @@ import {Link} from 'gatsby'
 import Layout from '../components/layout'
 import Seo from '../components/seo'
 
+const {fetch} = globalThis
+
 const UsingSSR = ({serverData}) => (
   <Layout>
     <h1>
@@ -43,6 +45,7 @@ export async function getServerData() {
     return {
       props: await res.json()
     }
+  // eslint-disable-next-line no-unused-vars
   } catch (error) {
     return {
       status: 500,

@@ -1,8 +1,10 @@
-const express = require('express')
-const cors = require('cors')
-const Models = require('../lib/models')
+import express from 'express'
+import cors from 'cors'
+import {Models} from '../lib/models.mjs'
 
-const app = express()
+const {process, console} = globalThis
+
+export const app = express()
 const models = new Models()
 
 // Middleware
@@ -22,7 +24,7 @@ const requireAuth = (req, res, next) => {
     return res.status(401).json({error: 'Authentication required'})
   }
   req.playerId = parseInt(playerId)
-  next()
+  return next()
 }
 
 // Routes
@@ -93,9 +95,9 @@ app.get('/api/team/:year/:sex', requireAuth, async (req, res) => {
 
     const roster = await models.getPlayerTeamRoster(team.team_id)
 
-    res.json({...team, roster})
+    return res.json({...team, roster})
   } catch (error) {
-    res.status(500).json({error: error.message})
+    return res.status(500).json({error: error.message})
   }
 })
 
@@ -213,7 +215,9 @@ app.post('/api/team/:year/:sex/validate', async (req, res) => {
 
       if (highValueBudget > 100) {
         validation.isValid = false
-        validation.errors.push(`High-value budget exceeded: ${highValueBudget}/100 points for riders ≥20 points`)
+        validation.errors.push(
+          `High-value budget exceeded: ${highValueBudget}/100 points for riders ≥20 points`
+        )
       }
     }
 
@@ -229,4 +233,3 @@ app.listen(PORT, () => {
   console.log(`API server running on port ${PORT}`)
 })
 
-module.exports = app

@@ -1,6 +1,6 @@
-const Database = require('./database')
+import {Database} from './database.mjs'
 
-class Models {
+export class Models {
   constructor() {
     this.db = new Database()
   }
@@ -48,7 +48,10 @@ class Models {
 
   // Rider methods
   async getRiders(year, sex, filters = {}) {
-    let sql = 'SELECT r.*, p.acronym as team_acronym FROM rider r JOIN pro_team p ON r.pro_team_name = p.pro_team_name AND r.year = p.year AND r.sex = p.sex WHERE r.year = ? AND r.sex = ?'
+    let sql = 'SELECT r.*, p.acronym as team_acronym FROM rider r ' +
+      'JOIN pro_team p ON r.pro_team_name = p.pro_team_name ' +
+      'AND r.year = p.year AND r.sex = p.sex ' +
+      'WHERE r.year = ? AND r.sex = ?'
     const params = [year, sex]
 
     if (filters.nationality) {
@@ -82,8 +85,10 @@ class Models {
 
     const placeholders = riderNames.map(() => '?').join(',')
     const sql = `SELECT r.*, p.acronym as team_acronym FROM rider r 
-                 JOIN pro_team p ON r.pro_team_name = p.pro_team_name AND r.year = p.year AND r.sex = p.sex 
-                 WHERE r.year = ? AND r.sex = ? AND r.rider_name IN (${placeholders})`
+                 JOIN pro_team p ON r.pro_team_name = p.pro_team_name 
+                 AND r.year = p.year AND r.sex = p.sex 
+                 WHERE r.year = ? AND r.sex = ? 
+                 AND r.rider_name IN (${placeholders})`
 
     return await this.db.all(sql, [year, sex, ...riderNames])
   }
@@ -137,7 +142,7 @@ class Models {
     }
 
     // Update team validity
-    const isValid = await this.validateTeam(teamId, sex, year)
+    const isValid = await this.validateTeam(teamId, sex)
 
     await this.db.run(
       'UPDATE player_team SET is_valid = ?, updated_at = CURRENT_TIMESTAMP WHERE team_id = ?',
@@ -149,16 +154,19 @@ class Models {
 
   async getPlayerTeamRoster(teamId) {
     return await this.db.all(`
-      SELECT ptr.*, r.price, r.pro_team_name, r.nationality, p.acronym as team_acronym
+      SELECT ptr.*, r.price, r.pro_team_name, r.nationality, 
+             p.acronym as team_acronym
       FROM player_team_roster ptr 
-      JOIN rider r ON ptr.rider_name = r.rider_name AND ptr.sex = r.sex AND ptr.year = r.year
-      JOIN pro_team p ON r.pro_team_name = p.pro_team_name AND r.year = p.year AND r.sex = p.sex
+      JOIN rider r ON ptr.rider_name = r.rider_name 
+                   AND ptr.sex = r.sex AND ptr.year = r.year
+      JOIN pro_team p ON r.pro_team_name = p.pro_team_name 
+                      AND r.year = p.year AND r.sex = p.sex
       WHERE ptr.team_id = ?
       ORDER BY r.price DESC, r.rider_name
     `, [teamId])
   }
 
-  async validateTeam(teamId, sex, year) {
+  async validateTeam(teamId, sex) {
     const roster = await this.getPlayerTeamRoster(teamId)
 
     if (sex === 'm') {
@@ -248,8 +256,10 @@ class Models {
       FROM player_team pt
       JOIN player p ON pt.player_id = p.player_id
       LEFT JOIN player_team_roster ptr ON pt.team_id = ptr.team_id
-      LEFT JOIN finisher f ON ptr.rider_name = f.rider_name AND ptr.sex = f.sex AND ptr.year = f.year
-      LEFT JOIN jersey_holder j ON ptr.rider_name = j.rider_name AND ptr.sex = j.sex AND ptr.year = j.year
+      LEFT JOIN finisher f ON ptr.rider_name = f.rider_name 
+                            AND ptr.sex = f.sex AND ptr.year = f.year
+      LEFT JOIN jersey_holder j ON ptr.rider_name = j.rider_name 
+                                AND ptr.sex = j.sex AND ptr.year = j.year
       WHERE pt.year = ? AND pt.sex = ? AND pt.is_valid = 1
       GROUP BY pt.team_id, pt.team_name, p.player_name
       ORDER BY total_score DESC
@@ -264,13 +274,13 @@ class Models {
         r.nationality,
         SUM(COALESCE(f.points_awarded, 0) + COALESCE(j.points_awarded, 0)) as total_score
       FROM rider r
-      LEFT JOIN finisher f ON r.rider_name = f.rider_name AND r.sex = f.sex AND r.year = f.year
-      LEFT JOIN jersey_holder j ON r.rider_name = j.rider_name AND r.sex = j.sex AND r.year = j.year
+      LEFT JOIN finisher f ON r.rider_name = f.rider_name 
+                            AND r.sex = f.sex AND r.year = f.year
+      LEFT JOIN jersey_holder j ON r.rider_name = j.rider_name 
+                                AND r.sex = j.sex AND r.year = j.year
       WHERE r.year = ? AND r.sex = ?
       GROUP BY r.rider_name, r.pro_team_name, r.nationality
       ORDER BY total_score DESC
     `, [year, sex])
   }
 }
-
-module.exports = Models

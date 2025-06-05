@@ -4,6 +4,7 @@ import {Link} from 'gatsby'
 
 import Layout from '../components/layout'
 import Seo from '../components/seo'
+const {fetch, console} = globalThis
 
 const AllRiders = () => {
   const [riderScores, setRiderScores] = useState([])
@@ -71,7 +72,10 @@ const AllRiders = () => {
         <div style={{marginBottom: '20px'}}>
           <label style={{marginRight: '10px'}}>
             Year:
-            <select value={year} onChange={e => setYear(parseInt(e.target.value))} style={{marginLeft: '5px'}}>
+            <select
+              value={year}
+              onChange={e => setYear(parseInt(e.target.value))}
+              style={{marginLeft: '5px'}}>
               <option value={2024}>2024</option>
               <option value={2023}>2023</option>
             </select>
@@ -95,24 +99,36 @@ const AllRiders = () => {
             <table style={{width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd'}}>
               <thead>
                 <tr style={{backgroundColor: '#f5f5f5'}}>
-                  <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('rider_name')}>
+                  <th
+                    style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}}
+                    onClick={() => handleSort('rider_name')}>
                     Rider Name {sortBy === 'rider_name' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
-                  <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('pro_team_name')}>
+                  <th
+                    style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}}
+                    onClick={() => handleSort('pro_team_name')}>
                     Team {sortBy === 'pro_team_name' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
-                  <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('nationality')}>
+                  <th
+                    style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}}
+                    onClick={() => handleSort('nationality')}>
                     Nationality {sortBy === 'nationality' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
-                  <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('total_score')}>
+                  <th
+                    style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}}
+                    onClick={() => handleSort('total_score')}>
                     Total Score {sortBy === 'total_score' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {sortedRiders.map((rider, index) => (
-                  <tr key={rider.rider_name} style={{backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white'}}>
-                    <td style={{padding: '10px', border: '1px solid #ddd'}}>{rider.rider_name}</td>
+                  <tr
+                    key={rider.rider_name}
+                    style={{backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white'}}>
+                    <td style={{padding: '10px', border: '1px solid #ddd'}}>
+                      {rider.rider_name}
+                    </td>
                     <td style={{padding: '10px', border: '1px solid #ddd'}}>{rider.pro_team_name}</td>
                     <td style={{padding: '10px', border: '1px solid #ddd'}}>{rider.nationality}</td>
                     <td style={{padding: '10px', border: '1px solid #ddd', textAlign: 'right'}}>
@@ -126,7 +142,10 @@ const AllRiders = () => {
         )}
 
         {!loading && riderScores.length === 0 && (
-          <p>No riders found for {sex === 'm' ? 'Men' : 'Women'} {year}. Riders will appear here once they are added to the system.</p>
+          <p>
+            No riders found for {sex === 'm' ? 'Men' : 'Women'} {year}.
+            Riders will appear here once they are added to the system.
+          </p>
         )}
       </div>
     </Layout>

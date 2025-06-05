@@ -1,9 +1,13 @@
-const sqlite3 = require('sqlite3').verbose()
-const path = require('path')
+import sqlite3 from 'sqlite3'
+import path from 'path'
+import {fileURLToPath} from 'url'
 
-const dbPath = path.join(__dirname, '../../database/vds.db')
+const filename = fileURLToPath(import.meta.url)
+const dirname = path.dirname(filename)
 
-class Database {
+const dbPath = path.join(dirname, '../../database/vds.db')
+
+export class Database {
   constructor() {
     this.db = null
   }
@@ -42,6 +46,8 @@ class Database {
         if (err) {
           reject(err)
         } else {
+          // sqlite3 provides `this` context in callbacks
+          // eslint-disable-next-line no-invalid-this
           resolve({id: this.lastID, changes: this.changes})
         }
       })
@@ -73,4 +79,3 @@ class Database {
   }
 }
 
-module.exports = Database

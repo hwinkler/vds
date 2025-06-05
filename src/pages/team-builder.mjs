@@ -1,3 +1,4 @@
+
 import * as React from 'react'
 import {useState, useEffect} from 'react'
 import {Link, navigate} from 'gatsby'
@@ -5,6 +6,7 @@ import {Link, navigate} from 'gatsby'
 import Layout from '../components/layout'
 import Seo from '../components/seo'
 
+const {fetch, console, URLSearchParams, alert, confirm} = globalThis
 const TeamBuilder = () => {
   const [riders, setRiders] = useState([])
   const [selectedRiders, setSelectedRiders] = useState([])
@@ -26,7 +28,7 @@ const TeamBuilder = () => {
   // Mock player ID - in real app this would come from authentication
   const playerId = 1
 
-  const fetchRiders = async () => {
+  const fetchRiders = React.useCallback(async () => {
     try {
       setLoading(true)
       const queryParams = new URLSearchParams()
@@ -46,8 +48,9 @@ const TeamBuilder = () => {
     } finally {
       setLoading(false)
     }
-  }
-  const loadExistingTeam = async () => {
+  }, [filters, year, sex])
+
+  const loadExistingTeam = React.useCallback(async () => {
     try {
       const response = await fetch(`http://localhost:8001/api/team/${year}/${sex}`, {
         headers: {'x-player-id': playerId.toString()}
@@ -64,7 +67,7 @@ const TeamBuilder = () => {
     } catch (error) {
       console.error('Error loading existing team:', error)
     }
-  }
+  }, [year, sex, playerId])
 
   useEffect(() => {
     fetchRiders()
@@ -95,7 +98,7 @@ const TeamBuilder = () => {
 
       validateTeam()
     }
-  }, [selectedRiders, sex])
+  }, [selectedRiders, sex, year])
 
 
   const sortedRiders = [...riders].sort((a, b) => {
@@ -192,7 +195,10 @@ const TeamBuilder = () => {
         <div style={{marginBottom: '20px'}}>
           <label style={{marginRight: '10px'}}>
             Year:
-            <select value={year} onChange={e => setYear(parseInt(e.target.value))} style={{marginLeft: '5px'}}>
+            <select
+              value={year}
+              onChange={e => setYear(parseInt(e.target.value))}
+              style={{marginLeft: '5px'}}>
               <option value={2024}>2024</option>
               <option value={2023}>2023</option>
             </select>
@@ -254,31 +260,44 @@ const TeamBuilder = () => {
                   <thead style={{position: 'sticky', top: '0', backgroundColor: '#f5f5f5'}}>
                     <tr>
                       <th style={{padding: '10px', border: '1px solid #ddd'}}>Select</th>
-                      <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('rider_name')}>
+                      <th
+                        style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}}
+                        onClick={() => handleSort('rider_name')}>
                         Name {sortBy === 'rider_name' && (sortOrder === 'asc' ? '↑' : '↓')}
                       </th>
-                      <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('pro_team_name')}>
+                      <th
+                        style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}}
+                        onClick={() => handleSort('pro_team_name')}>
                         Team {sortBy === 'pro_team_name' && (sortOrder === 'asc' ? '↑' : '↓')}
                       </th>
-                      <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('nationality')}>
+                      <th
+                        style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}}
+                        onClick={() => handleSort('nationality')}>
                         Nationality {sortBy === 'nationality' && (sortOrder === 'asc' ? '↑' : '↓')}
                       </th>
-                      <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('price')}>
+                      <th
+                        style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}}
+                        onClick={() => handleSort('price')}>
                         Price {sortBy === 'price' && (sortOrder === 'asc' ? '↑' : '↓')}
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     {sortedRiders.map((rider, index) => (
-                      <tr key={rider.rider_name} style={{backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white'}}>
-                        <td style={{padding: '10px', border: '1px solid #ddd', textAlign: 'center'}}>
+                      <tr
+                        key={rider.rider_name}
+                        style={{backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white'}}>
+                        <td
+                          style={{padding: '10px', border: '1px solid #ddd', textAlign: 'center'}}>
                           <input
                             type="checkbox"
                             checked={selectedRiders.includes(rider.rider_name)}
                             onChange={() => handleRiderToggle(rider.rider_name)} />
                         </td>
                         <td style={{padding: '10px', border: '1px solid #ddd'}}>{rider.rider_name}</td>
-                        <td style={{padding: '10px', border: '1px solid #ddd'}}>{rider.team_acronym || rider.pro_team_name}</td>
+                        <td style={{padding: '10px', border: '1px solid #ddd'}}>
+                          {rider.team_acronym || rider.pro_team_name}
+                        </td>
                         <td style={{padding: '10px', border: '1px solid #ddd'}}>{rider.nationality}</td>
                         <td style={{padding: '10px', border: '1px solid #ddd', textAlign: 'right'}}>{rider.price}</td>
                       </tr>
@@ -321,9 +340,21 @@ const TeamBuilder = () => {
               </div>
             )}
 
-            <div style={{maxHeight: '400px', overflowY: 'scroll', border: '1px solid #ddd', marginBottom: '10px'}}>
+            <div style={{
+              maxHeight: '400px',
+              overflowY: 'scroll',
+              border: '1px solid #ddd',
+              marginBottom: '10px'
+            }}>
               {selectedRiderDetails.map(rider => (
-                <div key={rider.rider_name} style={{padding: '5px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between'}}>
+                <div
+                  key={rider.rider_name}
+                  style={{
+                    padding: '5px',
+                    borderBottom: '1px solid #eee',
+                    display: 'flex',
+                    justifyContent: 'space-between'
+                  }}>
                   <div>
                     <strong>{rider.rider_name}</strong><br />
                     <small>{rider.team_acronym || rider.pro_team_name} ({rider.nationality})</small>
