@@ -1,128 +1,135 @@
 import * as React from "react"
+import { useState, useEffect } from "react"
 import { Link } from "gatsby"
-import { StaticImage } from "gatsby-plugin-image"
 
 import Layout from "../components/layout"
 import Seo from "../components/seo"
-import * as styles from "../components/index.module.css"
 
-const links = [
-  {
-    text: "Tutorial",
-    url: "https://www.gatsbyjs.com/docs/tutorial",
-    description:
-      "A great place to get started if you're new to web development. Designed to guide you through setting up your first Gatsby site.",
-  },
-  {
-    text: "Examples",
-    url: "https://github.com/gatsbyjs/gatsby/tree/master/examples",
-    description:
-      "A collection of websites ranging from very basic to complex/complete that illustrate how to accomplish specific tasks within your Gatsby sites.",
-  },
-  {
-    text: "Plugin Library",
-    url: "https://www.gatsbyjs.com/plugins",
-    description:
-      "Learn how to add functionality and customize your Gatsby site or app with thousands of plugins built by our amazing developer community.",
-  },
-  {
-    text: "Build and Host",
-    url: "https://www.gatsbyjs.com/cloud",
-    description:
-      "Now you’re ready to show the world! Give your Gatsby site superpowers: Build and host on Gatsby Cloud. Get started for free!",
-  },
-]
+const IndexPage = () => {
+  const [rankings, setRankings] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [year, setYear] = useState(2024)
+  const [sex, setSex] = useState('m')
+  const [sortBy, setSortBy] = useState('score')
+  const [sortOrder, setSortOrder] = useState('desc')
 
-const samplePageLinks = [
-  {
-    text: "Page 2",
-    url: "page-2",
-    badge: false,
-    description:
-      "A simple example of linking to another page within a Gatsby site",
-  },
-  { text: "TypeScript", url: "using-typescript" },
-  { text: "Server Side Rendering", url: "using-ssr" },
-  { text: "Deferred Static Generation", url: "using-dsg" },
-]
+  const fetchRankings = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`http://localhost:8000/api/teams/${year}/${sex}/rankings`)
+      const data = await response.json()
+      setRankings(data)
+    } catch (error) {
+      console.error('Error fetching rankings:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-const moreLinks = [
-  { text: "Join us on Discord", url: "https://gatsby.dev/discord" },
-  {
-    text: "Documentation",
-    url: "https://gatsbyjs.com/docs/",
-  },
-  {
-    text: "Starters",
-    url: "https://gatsbyjs.com/starters/",
-  },
-  {
-    text: "Showcase",
-    url: "https://gatsbyjs.com/showcase/",
-  },
-  {
-    text: "Contributing",
-    url: "https://www.gatsbyjs.com/contributing/",
-  },
-  { text: "Issues", url: "https://github.com/gatsbyjs/gatsby/issues" },
-]
+  useEffect(() => {
+    fetchRankings()
+  }, [year, sex, fetchRankings])
 
-const utmParameters = `?utm_source=starter&utm_medium=start-page&utm_campaign=default-starter`
+  const sortedRankings = [...rankings].sort((a, b) => {
+    let aVal = a[sortBy]
+    let bVal = b[sortBy]
 
-const IndexPage = () => (
-  <Layout>
-    <div className={styles.textCenter}>
-      <StaticImage
-        src="../images/example.png"
-        loading="eager"
-        width={64}
-        quality={95}
-        formats={["auto", "webp", "avif"]}
-        alt=""
-        style={{ marginBottom: `var(--space-3)` }}
-      />
-      <h1>
-        Welcome to <b>Gatsby!</b>
-      </h1>
-      <p className={styles.intro}>
-        <b>Example pages:</b>{" "}
-        {samplePageLinks.map((link, i) => (
-          <React.Fragment key={link.url}>
-            <Link to={link.url}>{link.text}</Link>
-            {i !== samplePageLinks.length - 1 && <> · </>}
-          </React.Fragment>
-        ))}
-        <br />
-        Edit <code>src/pages/index.js</code> to update this page.
-      </p>
-    </div>
-    <ul className={styles.list}>
-      {links.map(link => (
-        <li key={link.url} className={styles.listItem}>
-          <a
-            className={styles.listItemLink}
-            href={`${link.url}${utmParameters}`}
-          >
-            {link.text} ↗
-          </a>
-          <p className={styles.listItemDescription}>{link.description}</p>
-        </li>
-      ))}
-    </ul>
-    {moreLinks.map((link, i) => (
-      <React.Fragment key={link.url}>
-        <a href={`${link.url}${utmParameters}`}>{link.text}</a>
-        {i !== moreLinks.length - 1 && <> · </>}
-      </React.Fragment>
-    ))}
-  </Layout>
-)
+    if (sortBy === 'total_score') {
+      aVal = parseInt(aVal) || 0
+      bVal = parseInt(bVal) || 0
+    }
 
-/**
- * Head export to define metadata for the page
- *
- * See: https://www.gatsbyjs.com/docs/reference/built-in-components/gatsby-head/
- */
-export const Head = () => <Seo title="Home" />
+    if (sortOrder === 'desc') {
+      return bVal > aVal ? 1 : -1
+    } else {
+      return aVal > bVal ? 1 : -1
+    }
+  })
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortBy(column)
+      setSortOrder(column === 'total_score' ? 'desc' : 'asc')
+    }
+  }
+
+  return (
+    <Layout>
+      <div style={{ padding: '20px' }}>
+        <h1>VDS Fantasy Pro Cycling</h1>
+
+        <nav style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f5f5f5' }}>
+          <Link to="/team-builder" style={{ marginRight: '20px' }}>Team Builder</Link>
+          <Link to="/all-riders" style={{ marginRight: '20px' }}>All Riders</Link>
+          <Link to="/races" style={{ marginRight: '20px' }}>Races</Link>
+          <Link to="/team-results" style={{ marginRight: '20px' }}>My Team Results</Link>
+        </nav>
+
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ marginRight: '10px' }}>
+            Year:
+            <select value={year} onChange={(e) => setYear(parseInt(e.target.value))} style={{ marginLeft: '5px' }}>
+              <option value={2024}>2024</option>
+              <option value={2023}>2023</option>
+            </select>
+          </label>
+
+          <label>
+            Category:
+            <select value={sex} onChange={(e) => setSex(e.target.value)} style={{ marginLeft: '5px' }}>
+              <option value="m">Men</option>
+              <option value="f">Women</option>
+            </select>
+          </label>
+        </div>
+
+        <h2>Team Rankings - {sex === 'm' ? 'Men' : 'Women'} {year}</h2>
+
+        {loading ? (
+          <p>Loading rankings...</p>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#f5f5f5' }}>
+                <th style={{ padding: '10px', border: '1px solid #ddd', cursor: 'pointer' }} onClick={() => handleSort('player_name')}>
+                  Player Name {sortBy === 'player_name' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th style={{ padding: '10px', border: '1px solid #ddd', cursor: 'pointer' }} onClick={() => handleSort('team_name')}>
+                  Team Name {sortBy === 'team_name' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th style={{ padding: '10px', border: '1px solid #ddd', cursor: 'pointer' }} onClick={() => handleSort('total_score')}>
+                  Total Score {sortBy === 'total_score' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedRankings.map((team, index) => (
+                <tr key={team.team_id} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
+                  <td style={{ padding: '10px', border: '1px solid #ddd' }}>{team.player_name}</td>
+                  <td style={{ padding: '10px', border: '1px solid #ddd' }}>
+                    <Link to={`/team-results?team_id=${team.team_id}`}>
+                      {team.team_name}
+                    </Link>
+                  </td>
+                  <td style={{ padding: '10px', border: '1px solid #ddd', textAlign: 'right' }}>
+                    {team.total_score || 0}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {!loading && rankings.length === 0 && (
+          <p>No teams found for {sex === 'm' ? 'Men' : 'Women'} {year}. Teams will appear here once they are created and validated.</p>
+        )}
+      </div>
+    </Layout>
+  )
+}
+
+export const Head = () => <Seo title="VDS Fantasy Pro Cycling" />
 
 export default IndexPage
