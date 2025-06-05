@@ -211,7 +211,7 @@ app.post('/api/team/:year/:sex/validate', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8001;
 app.listen(PORT, () => {
   console.log(`API server running on port ${PORT}`);
 });

@@ -22,7 +22,7 @@ const RaceResults = () => {
   const fetchRaceResults = async (raceId) => {
     try {
       setLoading(true)
-      const response = await fetch(`http://localhost:8000/api/races/${raceId}/results`)
+      const response = await fetch(`http://localhost:8001/api/races/${raceId}/results`)
       const data = await response.json()
       setRaceResults(data)
       

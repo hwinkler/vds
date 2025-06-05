@@ -18,7 +18,7 @@ const AllRiders = () => {
     const fetchRiderScores = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`http://localhost:8000/api/riders/${year}/${sex}/scores`)
+        const response = await fetch(`http://localhost:8001/api/riders/${year}/${sex}/scores`)
         const data = await response.json()
         setRiderScores(data)
       } catch (error) {

@@ -20,7 +20,7 @@ const TeamResults = () => {
     const fetchTeamResults = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`http://localhost:8000/api/team/${year}/${sex}`, {
+        const response = await fetch(`http://localhost:8001/api/team/${year}/${sex}`, {
           headers: { 'x-player-id': playerId.toString() }
         })
 

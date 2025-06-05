@@ -10,7 +10,9 @@
       "Bash(mv:*)",
       "Bash(rmdir:*)",
       "Bash(rm:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(curl:*)",
+      "Bash(lsof:*)"
     ],
     "deny": []
   }

@@ -16,7 +16,7 @@ const IndexPage = () => {
   const fetchRankings = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`http://localhost:8000/api/teams/${year}/${sex}/rankings`)
+      const response = await fetch(`http://localhost:8001/api/teams/${year}/${sex}/rankings`)
       const data = await response.json()
       setRankings(data)
     } catch (error) {

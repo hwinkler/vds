@@ -15,7 +15,7 @@ const Races = () => {
     const fetchRaces = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`http://localhost:8000/api/races/${year}/${sex}`)
+        const response = await fetch(`http://localhost:8001/api/races/${year}/${sex}`)
         const data = await response.json()
         setRaces(data)
       } catch (error) {

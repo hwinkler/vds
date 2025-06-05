@@ -34,7 +34,7 @@ const TeamBuilder = () => {
         if (value) queryParams.append(key, value)
       })
 
-      const response = await fetch(`http://localhost:8000/api/riders/${year}/${sex}?${queryParams}`)
+      const response = await fetch(`http://localhost:8001/api/riders/${year}/${sex}?${queryParams}`)
       const data = await response.json()
       setRiders(data)
     } catch (error) {
@@ -45,7 +45,7 @@ const TeamBuilder = () => {
   }
     const loadExistingTeam = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/team/${year}/${sex}`, {
+      const response = await fetch(`http://localhost:8001/api/team/${year}/${sex}`, {
         headers: { 'x-player-id': playerId.toString() }
       })
       const team = await response.json()
@@ -78,7 +78,7 @@ const TeamBuilder = () => {
         }
 
         try {
-          const response = await fetch(`http://localhost:8000/api/team/${year}/${sex}/validate`, {
+          const response = await fetch(`http://localhost:8001/api/team/${year}/${sex}/validate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ riders: selectedRiders })
@@ -143,7 +143,7 @@ const TeamBuilder = () => {
 
     try {
       setSaving(true)
-      const response = await fetch(`http://localhost:8000/api/team/${year}/${sex}`, {
+      const response = await fetch(`http://localhost:8001/api/team/${year}/${sex}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -172,6 +172,7 @@ const TeamBuilder = () => {
   }
 
   const handleReset = () => {
+    // eslint-disable-next-line no-restricted-globals
     if (confirm('Are you sure you want to reset your team? This will discard all changes.')) {
       loadExistingTeam()
     }
