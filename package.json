@@ -11,6 +11,7 @@
     "concurrently": "^9.1.2",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
+    "eslint": "^9.28.0",
     "express": "^5.1.0",
     "gatsby": "^5.14.3",
     "gatsby-plugin-image": "^3.14.0",
@@ -29,7 +30,11 @@
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
-    "eslint": "^9.28.0",
+    "@eslint/compat": "^1.2.9",
+    "@eslint/js": "^9.28.0",
+    "eslint-plugin-babel": "^5.3.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "prettier": "^2.8.8"
   },
   "keywords": [

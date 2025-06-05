@@ -1,9 +1,9 @@
-import * as React from "react"
-import { useState, useEffect } from "react"
-import { Link, navigate } from "gatsby"
+import * as React from 'react'
+import {useState, useEffect} from 'react'
+import {Link, navigate} from 'gatsby'
 
-import Layout from "../components/layout"
-import Seo from "../components/seo"
+import Layout from '../components/layout'
+import Seo from '../components/seo'
 
 const TeamBuilder = () => {
   const [riders, setRiders] = useState([])
@@ -20,7 +20,7 @@ const TeamBuilder = () => {
   })
   const [sortBy, setSortBy] = useState('rider_name')
   const [sortOrder, setSortOrder] = useState('asc')
-  const [validation, setValidation] = useState({ isValid: false, errors: [], warnings: [] })
+  const [validation, setValidation] = useState({isValid: false, errors: [], warnings: []})
   const [saving, setSaving] = useState(false)
 
   // Mock player ID - in real app this would come from authentication
@@ -30,12 +30,16 @@ const TeamBuilder = () => {
     try {
       setLoading(true)
       const queryParams = new URLSearchParams()
+
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) queryParams.append(key, value)
+        if (value) {
+          queryParams.append(key, value)
+        }
       })
 
       const response = await fetch(`http://localhost:8001/api/riders/${year}/${sex}?${queryParams}`)
       const data = await response.json()
+
       setRiders(data)
     } catch (error) {
       console.error('Error fetching riders:', error)
@@ -43,10 +47,10 @@ const TeamBuilder = () => {
       setLoading(false)
     }
   }
-    const loadExistingTeam = async () => {
+  const loadExistingTeam = async () => {
     try {
       const response = await fetch(`http://localhost:8001/api/team/${year}/${sex}`, {
-        headers: { 'x-player-id': playerId.toString() }
+        headers: {'x-player-id': playerId.toString()}
       })
       const team = await response.json()
 
@@ -63,8 +67,6 @@ const TeamBuilder = () => {
   }
 
   useEffect(() => {
-
-
     fetchRiders()
     loadExistingTeam()
   }, [year, sex, fetchRiders, loadExistingTeam])
@@ -73,17 +75,18 @@ const TeamBuilder = () => {
     if (selectedRiders.length > 0) {
       const validateTeam = async () => {
         if (selectedRiders.length === 0) {
-          setValidation({ isValid: false, errors: [], warnings: [] })
+          setValidation({isValid: false, errors: [], warnings: []})
           return
         }
 
         try {
           const response = await fetch(`http://localhost:8001/api/team/${year}/${sex}/validate`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ riders: selectedRiders })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({riders: selectedRiders})
           })
           const result = await response.json()
+
           setValidation(result)
         } catch (error) {
           console.error('Error validating team:', error)
@@ -93,8 +96,6 @@ const TeamBuilder = () => {
       validateTeam()
     }
   }, [selectedRiders, sex])
-
-
 
 
   const sortedRiders = [...riders].sort((a, b) => {
@@ -108,9 +109,8 @@ const TeamBuilder = () => {
 
     if (sortOrder === 'desc') {
       return bVal > aVal ? 1 : -1
-    } else {
-      return aVal > bVal ? 1 : -1
     }
+    return aVal > bVal ? 1 : -1
   })
 
   const selectedRiderDetails = riders.filter(rider => selectedRiders.includes(rider.rider_name))
@@ -118,7 +118,7 @@ const TeamBuilder = () => {
   const requiredRiders = sex === 'm' ? 25 : 15
   const maxBudget = 150
 
-  const handleRiderToggle = (riderName) => {
+  const handleRiderToggle = riderName => {
     if (selectedRiders.includes(riderName)) {
       setSelectedRiders(selectedRiders.filter(name => name !== riderName))
     } else {
@@ -126,7 +126,7 @@ const TeamBuilder = () => {
     }
   }
 
-  const handleSort = (column) => {
+  const handleSort = column => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
     } else {
@@ -172,7 +172,6 @@ const TeamBuilder = () => {
   }
 
   const handleReset = () => {
-    // eslint-disable-next-line no-restricted-globals
     if (confirm('Are you sure you want to reset your team? This will discard all changes.')) {
       loadExistingTeam()
     }
@@ -180,28 +179,28 @@ const TeamBuilder = () => {
 
   return (
     <Layout>
-      <div style={{ padding: '20px' }}>
+      <div style={{padding: '20px'}}>
         <h1>Team Builder</h1>
 
-        <nav style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f5f5f5' }}>
-          <Link to="/" style={{ marginRight: '20px' }}>Home</Link>
-          <Link to="/all-riders" style={{ marginRight: '20px' }}>All Riders</Link>
-          <Link to="/races" style={{ marginRight: '20px' }}>Races</Link>
-          <Link to="/team-results" style={{ marginRight: '20px' }}>My Team Results</Link>
+        <nav style={{marginBottom: '20px', padding: '10px', backgroundColor: '#f5f5f5'}}>
+          <Link to="/" style={{marginRight: '20px'}}>Home</Link>
+          <Link to="/all-riders" style={{marginRight: '20px'}}>All Riders</Link>
+          <Link to="/races" style={{marginRight: '20px'}}>Races</Link>
+          <Link to="/team-results" style={{marginRight: '20px'}}>My Team Results</Link>
         </nav>
 
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ marginRight: '10px' }}>
+        <div style={{marginBottom: '20px'}}>
+          <label style={{marginRight: '10px'}}>
             Year:
-            <select value={year} onChange={(e) => setYear(parseInt(e.target.value))} style={{ marginLeft: '5px' }}>
+            <select value={year} onChange={e => setYear(parseInt(e.target.value))} style={{marginLeft: '5px'}}>
               <option value={2024}>2024</option>
               <option value={2023}>2023</option>
             </select>
           </label>
 
-          <label style={{ marginRight: '20px' }}>
+          <label style={{marginRight: '20px'}}>
             Category:
-            <select value={sex} onChange={(e) => setSex(e.target.value)} style={{ marginLeft: '5px' }}>
+            <select value={sex} onChange={e => setSex(e.target.value)} style={{marginLeft: '5px'}}>
               <option value="m">Men</option>
               <option value="f">Women</option>
             </select>
@@ -212,82 +211,76 @@ const TeamBuilder = () => {
             <input
               type="text"
               value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
+              onChange={e => setTeamName(e.target.value)}
               placeholder="Enter team name"
-              style={{ marginLeft: '5px', padding: '5px' }}
-            />
+              style={{marginLeft: '5px', padding: '5px'}} />
           </label>
         </div>
 
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <div style={{ flex: '2' }}>
+        <div style={{display: 'flex', gap: '20px'}}>
+          <div style={{flex: '2'}}>
             <h3>Available Riders ({riders.length})</h3>
 
-            <div style={{ marginBottom: '15px', padding: '10px', border: '1px solid #ddd' }}>
+            <div style={{marginBottom: '15px', padding: '10px', border: '1px solid #ddd'}}>
               <h4>Filters</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+              <div style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px'}}>
                 <input
                   placeholder="Nationality (e.g., USA)"
                   value={filters.nationality}
-                  onChange={(e) => setFilters({ ...filters, nationality: e.target.value })}
-                />
+                  onChange={e => setFilters({...filters, nationality: e.target.value})} />
                 <input
                   placeholder="Team"
                   value={filters.team}
-                  onChange={(e) => setFilters({ ...filters, team: e.target.value })}
-                />
+                  onChange={e => setFilters({...filters, team: e.target.value})} />
                 <input
                   placeholder="Min Price"
                   type="number"
                   value={filters.minPrice}
-                  onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
-                />
+                  onChange={e => setFilters({...filters, minPrice: e.target.value})} />
                 <input
                   placeholder="Max Price"
                   type="number"
                   value={filters.maxPrice}
-                  onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
-                />
+                  onChange={e => setFilters({...filters, maxPrice: e.target.value})} />
               </div>
-              <button onClick={fetchRiders} style={{ marginTop: '10px' }}>Apply Filters</button>
+              <button onClick={fetchRiders} style={{marginTop: '10px'}}>Apply Filters</button>
             </div>
 
             {loading ? (
               <p>Loading riders...</p>
             ) : (
-              <div style={{ maxHeight: '600px', overflowY: 'scroll', border: '1px solid #ddd' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead style={{ position: 'sticky', top: '0', backgroundColor: '#f5f5f5' }}>
+              <div style={{maxHeight: '600px', overflowY: 'scroll', border: '1px solid #ddd'}}>
+                <table style={{width: '100%', borderCollapse: 'collapse'}}>
+                  <thead style={{position: 'sticky', top: '0', backgroundColor: '#f5f5f5'}}>
                     <tr>
-                      <th style={{ padding: '10px', border: '1px solid #ddd' }}>Select</th>
-                      <th style={{ padding: '10px', border: '1px solid #ddd', cursor: 'pointer' }} onClick={() => handleSort('rider_name')}>
+                      <th style={{padding: '10px', border: '1px solid #ddd'}}>Select</th>
+                      <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('rider_name')}>
                         Name {sortBy === 'rider_name' && (sortOrder === 'asc' ? '↑' : '↓')}
                       </th>
-                      <th style={{ padding: '10px', border: '1px solid #ddd', cursor: 'pointer' }} onClick={() => handleSort('pro_team_name')}>
+                      <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('pro_team_name')}>
                         Team {sortBy === 'pro_team_name' && (sortOrder === 'asc' ? '↑' : '↓')}
                       </th>
-                      <th style={{ padding: '10px', border: '1px solid #ddd', cursor: 'pointer' }} onClick={() => handleSort('nationality')}>
+                      <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('nationality')}>
                         Nationality {sortBy === 'nationality' && (sortOrder === 'asc' ? '↑' : '↓')}
                       </th>
-                      <th style={{ padding: '10px', border: '1px solid #ddd', cursor: 'pointer' }} onClick={() => handleSort('price')}>
+                      <th style={{padding: '10px', border: '1px solid #ddd', cursor: 'pointer'}} onClick={() => handleSort('price')}>
                         Price {sortBy === 'price' && (sortOrder === 'asc' ? '↑' : '↓')}
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     {sortedRiders.map((rider, index) => (
-                      <tr key={rider.rider_name} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
-                        <td style={{ padding: '10px', border: '1px solid #ddd', textAlign: 'center' }}>
+                      <tr key={rider.rider_name} style={{backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white'}}>
+                        <td style={{padding: '10px', border: '1px solid #ddd', textAlign: 'center'}}>
                           <input
                             type="checkbox"
                             checked={selectedRiders.includes(rider.rider_name)}
-                            onChange={() => handleRiderToggle(rider.rider_name)}
-                          />
+                            onChange={() => handleRiderToggle(rider.rider_name)} />
                         </td>
-                        <td style={{ padding: '10px', border: '1px solid #ddd' }}>{rider.rider_name}</td>
-                        <td style={{ padding: '10px', border: '1px solid #ddd' }}>{rider.team_acronym || rider.pro_team_name}</td>
-                        <td style={{ padding: '10px', border: '1px solid #ddd' }}>{rider.nationality}</td>
-                        <td style={{ padding: '10px', border: '1px solid #ddd', textAlign: 'right' }}>{rider.price}</td>
+                        <td style={{padding: '10px', border: '1px solid #ddd'}}>{rider.rider_name}</td>
+                        <td style={{padding: '10px', border: '1px solid #ddd'}}>{rider.team_acronym || rider.pro_team_name}</td>
+                        <td style={{padding: '10px', border: '1px solid #ddd'}}>{rider.nationality}</td>
+                        <td style={{padding: '10px', border: '1px solid #ddd', textAlign: 'right'}}>{rider.price}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -296,51 +289,50 @@ const TeamBuilder = () => {
             )}
           </div>
 
-          <div style={{ flex: '1' }}>
+          <div style={{flex: '1'}}>
             <h3>Selected Team ({selectedRiders.length}/{requiredRiders})</h3>
             <p><strong>Budget:</strong> {totalBudget}/{maxBudget} points</p>
 
             {validation.errors.length > 0 && (
-              <div style={{ backgroundColor: '#ffebee', padding: '10px', marginBottom: '10px' }}>
-                <h4 style={{ color: 'red' }}>Validation Errors:</h4>
+              <div style={{backgroundColor: '#ffebee', padding: '10px', marginBottom: '10px'}}>
+                <h4 style={{color: 'red'}}>Validation Errors:</h4>
                 <ul>
                   {validation.errors.map((error, index) => (
-                    <li key={index} style={{ color: 'red' }}>{error}</li>
+                    <li key={index} style={{color: 'red'}}>{error}</li>
                   ))}
                 </ul>
               </div>
             )}
 
             {validation.warnings.length > 0 && (
-              <div style={{ backgroundColor: '#fff3e0', padding: '10px', marginBottom: '10px' }}>
-                <h4 style={{ color: 'orange' }}>Warnings:</h4>
+              <div style={{backgroundColor: '#fff3e0', padding: '10px', marginBottom: '10px'}}>
+                <h4 style={{color: 'orange'}}>Warnings:</h4>
                 <ul>
                   {validation.warnings.map((warning, index) => (
-                    <li key={index} style={{ color: 'orange' }}>{warning}</li>
+                    <li key={index} style={{color: 'orange'}}>{warning}</li>
                   ))}
                 </ul>
               </div>
             )}
 
             {validation.isValid && (
-              <div style={{ backgroundColor: '#e8f5e8', padding: '10px', marginBottom: '10px' }}>
-                <p style={{ color: 'green' }}>✓ Team is valid!</p>
+              <div style={{backgroundColor: '#e8f5e8', padding: '10px', marginBottom: '10px'}}>
+                <p style={{color: 'green'}}>✓ Team is valid!</p>
               </div>
             )}
 
-            <div style={{ maxHeight: '400px', overflowY: 'scroll', border: '1px solid #ddd', marginBottom: '10px' }}>
+            <div style={{maxHeight: '400px', overflowY: 'scroll', border: '1px solid #ddd', marginBottom: '10px'}}>
               {selectedRiderDetails.map(rider => (
-                <div key={rider.rider_name} style={{ padding: '5px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>
+                <div key={rider.rider_name} style={{padding: '5px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between'}}>
                   <div>
                     <strong>{rider.rider_name}</strong><br />
                     <small>{rider.team_acronym || rider.pro_team_name} ({rider.nationality})</small>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
+                  <div style={{textAlign: 'right'}}>
                     {rider.price}
                     <button
                       onClick={() => handleRiderToggle(rider.rider_name)}
-                      style={{ marginLeft: '5px', fontSize: '12px' }}
-                    >
+                      style={{marginLeft: '5px', fontSize: '12px'}}>
                       ✕
                     </button>
                   </div>
@@ -348,7 +340,7 @@ const TeamBuilder = () => {
               ))}
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{display: 'flex', gap: '10px'}}>
               <button
                 onClick={handleSave}
                 disabled={saving || !teamName.trim()}
@@ -358,8 +350,7 @@ const TeamBuilder = () => {
                   color: 'white',
                   border: 'none',
                   cursor: 'pointer'
-                }}
-              >
+                }}>
                 {saving ? 'Saving...' : 'Save Team'}
               </button>
               <button
@@ -370,8 +361,7 @@ const TeamBuilder = () => {
                   color: 'white',
                   border: 'none',
                   cursor: 'pointer'
-                }}
-              >
+                }}>
                 Reset
               </button>
             </div>
