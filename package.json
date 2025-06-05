@@ -44,7 +44,7 @@
     "clean": "gatsby clean",
     "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1",
     "api": "node src/api/index.js",
-    "dev": "concurrently \"npm run develop\" \"npm run api\"",
+    "dev": "concurrently \"yarn run develop\" \"yarn run api\"",
     "db:init": "node database/init.js"
   },
   "repository": {
