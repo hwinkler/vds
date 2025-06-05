@@ -71,7 +71,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core@npm:^7.14.0, @babel/core@npm:^7.20.12":
+"@babel/core@npm:^7.14.0, @babel/core@npm:^7.20.12, @babel/core@npm:^7.27.4":
   version: 7.27.4
   resolution: "@babel/core@npm:7.27.4"
   dependencies:
@@ -7744,34 +7744,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"gatsby-starter-default@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "gatsby-starter-default@workspace:."
-  dependencies:
-    bcryptjs: "npm:^3.0.2"
-    concurrently: "npm:^9.1.2"
-    cors: "npm:^2.8.5"
-    dotenv: "npm:^16.5.0"
-    express: "npm:^5.1.0"
-    gatsby: "npm:^5.14.1"
-    gatsby-plugin-image: "npm:^3.14.0"
-    gatsby-plugin-manifest: "npm:^5.14.0"
-    gatsby-plugin-sharp: "npm:^5.14.0"
-    gatsby-source-filesystem: "npm:^5.14.0"
-    gatsby-transformer-sharp: "npm:^5.14.0"
-    jsonwebtoken: "npm:^9.0.2"
-    passport: "npm:^0.7.0"
-    passport-apple: "npm:^2.0.2"
-    passport-facebook: "npm:^3.0.0"
-    passport-google-oauth20: "npm:^2.0.0"
-    passport-jwt: "npm:^4.0.1"
-    prettier: "npm:^2.8.8"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
-    sqlite3: "npm:^5.1.7"
-  languageName: unknown
-  linkType: soft
-
 "gatsby-transformer-sharp@npm:^5.14.0":
   version: 5.14.0
   resolution: "gatsby-transformer-sharp@npm:5.14.0"
@@ -7803,7 +7775,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"gatsby@npm:^5.14.1":
+"gatsby@npm:^5.14.3":
   version: 5.14.3
   resolution: "gatsby@npm:5.14.3"
   dependencies:
@@ -12234,7 +12206,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^18.2.0":
+"react-dom@npm:^18.3.1":
   version: 18.3.1
   resolution: "react-dom@npm:18.3.1"
   dependencies:
@@ -12281,7 +12253,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^18.2.0":
+"react@npm:^18.3.1":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
   dependencies:
@@ -14558,6 +14530,35 @@ __metadata:
   checksum: 10c0/f15d588d79f3675135ba783c91a4083dcd290a2a5be9fcb6514220a1634e23df116847b1cc51f66bfb0644cf9353b2abb7815ae499bab06e46dd33c1a6bf1f4f
   languageName: node
   linkType: hard
+
+"vds@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "vds@workspace:."
+  dependencies:
+    "@babel/core": "npm:^7.27.4"
+    bcryptjs: "npm:^3.0.2"
+    concurrently: "npm:^9.1.2"
+    cors: "npm:^2.8.5"
+    dotenv: "npm:^16.5.0"
+    express: "npm:^5.1.0"
+    gatsby: "npm:^5.14.3"
+    gatsby-plugin-image: "npm:^3.14.0"
+    gatsby-plugin-manifest: "npm:^5.14.0"
+    gatsby-plugin-sharp: "npm:^5.14.0"
+    gatsby-source-filesystem: "npm:^5.14.0"
+    gatsby-transformer-sharp: "npm:^5.14.0"
+    jsonwebtoken: "npm:^9.0.2"
+    passport: "npm:^0.7.0"
+    passport-apple: "npm:^2.0.2"
+    passport-facebook: "npm:^3.0.0"
+    passport-google-oauth20: "npm:^2.0.0"
+    passport-jwt: "npm:^4.0.1"
+    prettier: "npm:^2.8.8"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
+    sqlite3: "npm:^5.1.7"
+  languageName: unknown
+  linkType: soft
 
 "watchpack@npm:^2.4.1":
   version: 2.4.4
