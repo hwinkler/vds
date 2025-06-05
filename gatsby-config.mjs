@@ -15,10 +15,10 @@ const dirname2 = dirname(filename)
 
 export default {
   siteMetadata: {
-    title: 'Gatsby Default Starter',
-    description: 'Kick off your next, great Gatsby project with this default starter. This barebones starter ships with the main Gatsby configuration files you might need.',
-    author: '@gatsbyjs',
-    siteUrl: 'https://gatsbystarterdefaultsource.gatsbyjs.io/'
+    title: 'Virtual Directeur Sportif',
+    description: 'The world\'s most popular yet humble fantasy cycling game.',
+    author: '@hughw.net',
+    siteUrl: 'https://vds2.app/'
   },
   plugins: [
     'gatsby-plugin-image',
