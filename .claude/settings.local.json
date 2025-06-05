@@ -12,7 +12,12 @@
       "Bash(rm:*)",
       "Bash(cp:*)",
       "Bash(curl:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(rg:*)",
+      "Bash(/Users/hughw/.nvm/versions/node/v22.16.0/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/arm64-darwin/rg \".{101,}\" --type js src/ --line-number --no-heading)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }
