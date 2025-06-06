@@ -1,0 +1,21 @@
+name = "vds-app"
+main = "src/worker/index.js"
+compatibility_date = "2024-12-01"
+
+[vars]
+ENVIRONMENT = "development"
+
+# Static assets from Gatsby build
+[assets]
+directory = "public/"
+not_found_handling = "single-page-application"
+binding = "ASSETS"
+
+# Database binding for D1 (production)
+[[d1_databases]]
+binding = "DB"
+database_name = "vds-db"
+database_id = "2c5b844c-7332-4634-b53c-7fc236528778"
+
+# For local development, use --local flag with wrangler dev
+# This will use the local database files instead

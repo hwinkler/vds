@@ -49,10 +49,9 @@
     "serve": "gatsby serve",
     "clean": "gatsby clean",
     "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1",
-
-    "api": "cd worker-api && wrangler dev --local",
-    "dev": "concurrently \"yarn run develop\" \"yarn run api\"",
-
+    "worker:dev": "wrangler dev --local",
+    "worker:deploy": "wrangler deploy",
+    "dev": "concurrently \"yarn run develop\" \"yarn run worker:dev\"",
     "db:init": "node database/init.js"
   },
   "repository": {
