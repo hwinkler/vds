@@ -54,9 +54,9 @@ const Layout = ({children}) => {
             marginTop: 'var(--space-5)',
             fontSize: 'var(--font-sm)'
           }}>
-          © {new Date().getFullYear()} &middot; Built with
+          © {new Date().getFullYear()} hugh winkler &middot; 
           {' '}
-          <a href="https://www.gatsbyjs.com">Gatsby</a>
+          <a href="https://www.gatsbyjs.com">use the source luke</a>
         </footer>
       </div>
     </>
