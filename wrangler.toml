@@ -1,4 +1,4 @@
-name = "vds-app"
+name = "vds2"
 main = "src/worker/index.js"
 compatibility_date = "2024-12-01"
 
