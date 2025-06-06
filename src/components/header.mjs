@@ -37,7 +37,7 @@ const Header = ({siteTitle}) => (
     </Link>
     <img
       alt="VDS2 logo"
-      height={20}
+      height={100}
       style={{margin: 0}}
       src={bikeRacerImage} />
   </header>
