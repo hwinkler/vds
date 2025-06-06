@@ -1,0 +1,12 @@
+name = "vds-worker-api"
+main = "src/index.js"
+compatibility_date = "2024-12-01"
+
+[vars]
+ENVIRONMENT = "development"
+
+# Database binding for D1 (local development)
+[[d1_databases]]
+binding = "DB"
+database_name = "vds-db"
+database_id = "local-db-id"

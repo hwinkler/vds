@@ -34,7 +34,8 @@
     "@eslint/js": "^9.28.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "prettier": "^2.8.8"
+    "prettier": "^2.8.8",
+    "wrangler": "^4.19.1"
   },
   "keywords": [
     "gatsby"
@@ -49,7 +50,9 @@
     "clean": "gatsby clean",
     "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1",
     "api": "node src/api/index.mjs",
+    "worker-dev": "cd worker-api && wrangler dev --local",
     "dev": "concurrently \"yarn run develop\" \"yarn run api\"",
+    "dev-worker": "concurrently \"yarn run develop\" \"yarn run worker-dev\"",
     "db:init": "node database/init.js"
   },
   "repository": {

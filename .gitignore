@@ -77,3 +77,4 @@ yarn-error.log
 .yarnrc.yml
 .vscode
 .claude
+worker-api/.wrangler/
