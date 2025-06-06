@@ -22,8 +22,9 @@ import {Link} from 'gatsby'
 
 import Layout from '../components/layout'
 import Seo from '../components/seo'
+import {api} from '../lib/api-config.mjs'
 
-const {fetch, console} = globalThis
+const {console} = globalThis
 const Races = () => {
   const [races, setRaces] = useState([])
   const [loading, setLoading] = useState(true)
@@ -34,8 +35,7 @@ const Races = () => {
     const fetchRaces = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`http://localhost:8001/api/races/${year}/${sex}`)
-        const data = await response.json()
+        const data = await api.get(`/api/races/${year}/${sex}`)
 
         setRaces(data)
       } catch (error) {

@@ -18,7 +18,11 @@ export default {
     title: 'Virtual Directeur Sportif',
     description: 'The world\'s most popular yet humble fantasy cycling game.',
     author: '@hughw.net',
-    siteUrl: 'https://vds2.app/'
+    siteUrl: 'https://vds2.app/',
+    // API configuration for client-side access
+    apiBaseUrl: process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:8787' 
+      : 'https://vds-worker-api.your-domain.workers.dev'
   },
   plugins: [
     'gatsby-plugin-image',
@@ -42,7 +46,7 @@ export default {
         // https://css-tricks.com/meta-theme-color-and-trickery/
         // theme_color: `#663399`,
         display: 'minimal-ui',
-        icon: 'src/images/gatsby-icon.png' // This path is relative to the root of the site.
+        icon: 'src/images/bike-racer.png' // This path is relative to the root of the site.
       }
     }
   ]

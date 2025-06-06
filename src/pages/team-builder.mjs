@@ -22,6 +22,7 @@ import {Link, navigate} from 'gatsby'
 
 import Layout from '../components/layout'
 import Seo from '../components/seo'
+import {api} from '../lib/api-config.mjs'
 
 const {fetch, console, URLSearchParams, alert, confirm} = globalThis
 const TeamBuilder = () => {
@@ -56,8 +57,7 @@ const TeamBuilder = () => {
         }
       })
 
-      const response = await fetch(`http://localhost:8001/api/riders/${year}/${sex}?${queryParams}`)
-      const data = await response.json()
+      const data = await api.get(`/api/riders/${year}/${sex}?${queryParams}`)
 
       setRiders(data)
     } catch (error) {
@@ -69,10 +69,9 @@ const TeamBuilder = () => {
 
   const loadExistingTeam = React.useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:8001/api/team/${year}/${sex}`, {
+      const team = await api.get(`/api/team/${year}/${sex}`, {
         headers: {'x-player-id': playerId.toString()}
       })
-      const team = await response.json()
 
       if (team && team.roster) {
         setTeamName(team.team_name || '')
@@ -100,13 +99,7 @@ const TeamBuilder = () => {
         }
 
         try {
-          const response = await fetch(`http://localhost:8001/api/team/${year}/${sex}/validate`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({riders: selectedRiders})
-          })
-          const result = await response.json()
-
+          const result = await api.post(`/api/team/${year}/${sex}/validate`, {riders: selectedRiders})
           setValidation(result)
         } catch (error) {
           console.error('Error validating team:', error)
@@ -163,25 +156,18 @@ const TeamBuilder = () => {
 
     try {
       setSaving(true)
-      const response = await fetch(`http://localhost:8001/api/team/${year}/${sex}`, {
-        method: 'POST',
+      const result = await api.post(`/api/team/${year}/${sex}`, {
+        team_name: teamName,
+        riders: selectedRiders
+      }, {
         headers: {
-          'Content-Type': 'application/json',
           'x-player-id': playerId.toString()
-        },
-        body: JSON.stringify({
-          team_name: teamName,
-          riders: selectedRiders
-        })
+        }
       })
 
-      if (response.ok) {
-        alert('Team saved successfully!')
-        if (validation.isValid) {
-          navigate('/team-results')
-        }
-      } else {
-        alert('Error saving team')
+      alert('Team saved successfully!')
+      if (validation.isValid) {
+        navigate('/team-results')
       }
     } catch (error) {
       console.error('Error saving team:', error)

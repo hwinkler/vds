@@ -34,23 +34,27 @@
     "@eslint/js": "^9.28.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "prettier": "^2.8.8"
+    "prettier": "^2.8.8",
+    "wrangler": "^4.19.1"
   },
   "keywords": [
     "gatsby"
   ],
   "license": "AGPL-3.0",
   "scripts": {
-    "build": "gatsby build",
+    "build": "GATSBY_TELEMETRY_DISABLED=1 gatsby build",
     "develop": "gatsby develop",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,css}\"",
     "start": "gatsby develop",
     "serve": "gatsby serve",
     "clean": "gatsby clean",
     "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1",
-    "api": "node src/api/index.mjs",
-    "dev": "concurrently \"yarn run develop\" \"yarn run api\"",
-    "db:init": "node database/init.js"
+    "worker:dev": "wrangler dev --local",
+    "worker:deploy": "wrangler deploy",
+    "dev": "concurrently \"yarn run develop\" \"yarn run worker:dev\"",
+    "db:init": "node database/init.js",
+    "db:schema": "yarn wrangler d1 execute vds-db --file=database/schema.sql",
+    "db:sample": "yarn wrangler d1 execute vds-db --file=database/sample-data.sql"
   },
   "repository": {
     "type": "git",

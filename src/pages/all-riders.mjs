@@ -4,7 +4,8 @@ import {Link} from 'gatsby'
 
 import Layout from '../components/layout'
 import Seo from '../components/seo'
-const {fetch, console} = globalThis
+import {api} from '../lib/api-config.mjs'
+const {console} = globalThis
 
 const AllRiders = () => {
   const [riderScores, setRiderScores] = useState([])
@@ -19,8 +20,7 @@ const AllRiders = () => {
     const fetchRiderScores = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`http://localhost:8001/api/riders/${year}/${sex}/scores`)
-        const data = await response.json()
+        const data = await api.get(`/api/riders/${year}/${sex}/scores`)
 
         setRiderScores(data)
       } catch (error) {

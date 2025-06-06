@@ -20,6 +20,7 @@ import {Link} from 'gatsby'
 
 import Layout from '../components/layout'
 import Seo from '../components/seo'
+import {api} from '../lib/api-config.mjs'
 
 const {URLSearchParams, fetch, console, window} = globalThis
 const RaceResults = () => {
@@ -31,8 +32,7 @@ const RaceResults = () => {
     const fetchRaceResults = async raceId => {
       try {
         setLoading(true)
-        const response = await fetch(`http://localhost:8001/api/races/${raceId}/results`)
-        const data = await response.json()
+        const data = await api.get(`/api/races/${raceId}/results`)
 
         setRaceResults(data)
 

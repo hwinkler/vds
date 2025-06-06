@@ -22,8 +22,9 @@ import {Link} from 'gatsby'
 
 import Layout from '../components/layout'
 import Seo from '../components/seo'
+import {api} from '../lib/api-config.mjs'
 
-const {fetch, console} = globalThis
+const {console} = globalThis
 
 const TeamResults = () => {
   const [team, setTeam] = useState(null)
@@ -40,17 +41,11 @@ const TeamResults = () => {
     const fetchTeamResults = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`http://localhost:8001/api/team/${year}/${sex}`, {
+        const data = await api.get(`/api/team/${year}/${sex}`, {
           headers: {'x-player-id': playerId.toString()}
         })
 
-        if (response.ok) {
-          const data = await response.json()
-
-          setTeam(data)
-        } else {
-          setTeam(null)
-        }
+        setTeam(data)
       } catch (error) {
         console.error('Error fetching team results:', error)
         setTeam(null)
