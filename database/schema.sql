@@ -1,4 +1,16 @@
 -- Fantasy Pro Cycling Database Schema
+DROP TABLE IF EXISTS jersey_holder;
+DROP TABLE IF EXISTS finisher;
+DROP TABLE IF EXISTS stage;
+DROP TABLE IF EXISTS race;
+DROP TABLE IF EXISTS category;
+DROP TABLE IF EXISTS player_team_roster;
+DROP TABLE IF EXISTS player_team;
+DROP TABLE IF EXISTS player;
+DROP TABLE IF EXISTS rider;
+DROP TABLE IF EXISTS nationality;
+DROP TABLE IF EXISTS pro_team;
+DROP TABLE IF EXISTS game;
 
 -- Game table for different game years and genders
 CREATE TABLE IF NOT EXISTS game (
@@ -146,4 +158,7 @@ INSERT OR IGNORE INTO category (category) VALUES
 INSERT OR IGNORE INTO nationality (nationality) VALUES 
     ('USA'), ('GBR'), ('FRA'), ('ITA'), ('ESP'), ('GER'), ('BEL'), ('NED'), 
     ('AUS'), ('COL'), ('SLO'), ('DEN'), ('NOR'), ('SWE'), ('SUI'), ('AUT'),
-    ('POL'), ('CZE'), ('SVK'), ('POR'), ('IRL'), ('CAN'), ('RSA'), ('NZL');
+    ('POL'), ('CZE'), ('SVK'), ('POR'), ('IRL'), ('CAN'), ('RSA'), ('NZL'),
+    ('JPN'), ('CHN'), ('KAZ'), ('RUS'), ('UKR'), ('LAT'), ('LIT'), ('EST'),
+    ('FIN'), ('HUN'), ('BUL'), ('ROU'), ('TUR'), ('GRE'), ('CRO'), ('SRB'),
+    ('BIH'), ('MNE'), ('MKD');

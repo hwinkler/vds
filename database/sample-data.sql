@@ -1,4 +1,16 @@
 -- Sample data for VDS Fantasy Pro Cycling
+-- Fantasy Pro Cycling Database Schema
+
+DELETE FROM jersey_holder;      -- Child table (depends on finisher, stage)
+DELETE FROM finisher;           -- Child table (depends on rider, stage)  
+DELETE FROM player_team_roster; -- Child table (depends on player_team, rider)
+DELETE FROM stage;              -- Child table (depends on race)
+DELETE FROM race;               -- Child table (depends on category)
+DELETE FROM player_team;        -- Child table (depends on player, game)
+DELETE FROM player;             -- Independent table
+DELETE FROM rider;              -- Child table (depends on pro_team, nationality)
+DELETE FROM pro_team;           -- Child table (depends on game)
+DELETE FROM game;               -- Parent table (last to delete)
 
 -- Create 2024 games
 INSERT OR REPLACE INTO game (sex, year, deadline) VALUES 
@@ -87,5 +99,5 @@ INSERT OR REPLACE INTO player_team(
     team_name,
     is_valid) VALUES
 (1, 1, 'm', 2024, 'Team A', 1),
-(2, 1, 'f', 2024, 'Team B', 1
-)
+(2, 1, 'f', 2024, 'Team B', 1);
+
