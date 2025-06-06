@@ -42,7 +42,7 @@
   ],
   "license": "AGPL-3.0",
   "scripts": {
-    "build": "gatsby build",
+    "build": "GATSBY_TELEMETRY_DISABLED=1 gatsby build",
     "develop": "gatsby develop",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,css}\"",
     "start": "gatsby develop",
@@ -52,7 +52,9 @@
     "worker:dev": "wrangler dev --local",
     "worker:deploy": "wrangler deploy",
     "dev": "concurrently \"yarn run develop\" \"yarn run worker:dev\"",
-    "db:init": "node database/init.js"
+    "db:init": "node database/init.js",
+    "db:schema": "yarn wrangler d1 execute vds-db --file=database/schema.sql",
+    "db:sample": "yarn wrangler d1 execute vds-db --file=database/sample-data.sql"
   },
   "repository": {
     "type": "git",
