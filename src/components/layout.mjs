@@ -56,7 +56,7 @@ const Layout = ({children}) => {
           }}>
           © {new Date().getFullYear()} hugh winkler &middot; 
           {' '}
-          <a href="https://www.gatsbyjs.com">use the source luke</a>
+          <a href="https://github.com/hwinkler/vds">use the source luke</a>
         </footer>
       </div>
     </>
