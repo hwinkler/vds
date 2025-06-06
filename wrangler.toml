@@ -19,3 +19,6 @@ database_id = "2c5b844c-7332-4634-b53c-7fc236528778"
 
 # For local development, use --local flag with wrangler dev
 # This will use the local database files instead
+
+[observability.logs]
+enabled = true
