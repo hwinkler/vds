@@ -49,10 +49,10 @@
     "serve": "gatsby serve",
     "clean": "gatsby clean",
     "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1",
-    "api": "node src/api/index.mjs",
-    "worker-dev": "cd worker-api && wrangler dev --local",
+
+    "api": "cd worker-api && wrangler dev --local",
     "dev": "concurrently \"yarn run develop\" \"yarn run api\"",
-    "dev-worker": "concurrently \"yarn run develop\" \"yarn run worker-dev\"",
+
     "db:init": "node database/init.js"
   },
   "repository": {

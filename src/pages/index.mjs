@@ -17,12 +17,13 @@
 
 import * as React from 'react'
 import {useState, useEffect} from 'react'
-import {Link} from 'gatsby'
+import {Link, useStaticQuery, graphql} from 'gatsby'
 
 import Layout from '../components/layout'
 import Seo from '../components/seo'
+import {api} from '../lib/api-config.mjs'
 
-const {fetch, console} = globalThis
+const {console} = globalThis
 
 const IndexPage = () => {
   const [rankings, setRankings] = useState([])
@@ -37,9 +38,7 @@ const IndexPage = () => {
     const fetchRankings = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`http://localhost:8001/api/teams/${year}/${sex}/rankings`)
-        const data = await response.json()
-
+        const data = await api.get(`/api/teams/${year}/${sex}/rankings`)
         setRankings(data)
       } catch (error) {
         console.error('Error fetching rankings:', error)
