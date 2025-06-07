@@ -15,40 +15,20 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// API Configuration for different environments
+// Simplified API Configuration - using relative URLs with proxy in development
 const API_CONFIG = {
-  development: {
-    baseUrl: 'http://localhost:8787',
-    timeout: 10000
-  },
-  production: {
-    baseUrl: '', // Empty for same-origin relative requests via Cloudflare Routes
-    timeout: 30000
-  }
-}
-
-// Detect environment
-function getEnvironment() {
-  // In browser, check if we're on localhost
-  if (typeof window !== 'undefined') {
-    return window.location.hostname === 'localhost' ? 'development' : 'production'
-  }
-  
-  // In SSR/build, use NODE_ENV or default to production
-  return process.env.NODE_ENV === 'development' ? 'development' : 'production'
+  timeout: typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 10000 : 30000
 }
 
 // Get current API configuration
 export function getApiConfig() {
-  const env = getEnvironment()
-  return API_CONFIG[env]
+  return API_CONFIG
 }
 
-// Build full API URL
+// Build API URL - always relative for same-origin requests
 export function getApiUrl(endpoint) {
-  const config = getApiConfig()
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
-  return `${config.baseUrl}${cleanEndpoint}`
+  return cleanEndpoint // Always relative - proxy handles dev routing
 }
 
 // Enhanced fetch with automatic config

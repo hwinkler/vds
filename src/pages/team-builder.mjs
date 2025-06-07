@@ -54,10 +54,7 @@ const TeamBuilder = () => {
       } catch (error) {
         // Not authenticated, redirect to login
         if (typeof window !== 'undefined') {
-          const apiUrl = process.env.NODE_ENV === 'development' 
-            ? 'http://localhost:8787' 
-            : ''
-          window.location.href = `${apiUrl}/auth/reddit`
+          window.location.href = '/auth/reddit'
         }
         return
       } finally {
@@ -86,7 +83,7 @@ const TeamBuilder = () => {
         <div style={{padding: '20px', textAlign: 'center'}}>
           <h2>Authentication Required</h2>
           <p>You need to be logged in to build a team.</p>
-          <a href={`${process.env.NODE_ENV === 'development' ? 'http://localhost:8787' : ''}/auth/reddit`} style={{
+          <a href="/auth/reddit" style={{
             padding: '10px 20px',
             backgroundColor: '#ff4500',
             color: 'white',
