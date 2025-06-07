@@ -1,15 +1,28 @@
 -- Fantasy Pro Cycling Database Schema
 DROP TABLE IF EXISTS jersey_holder;
+
 DROP TABLE IF EXISTS finisher;
+
 DROP TABLE IF EXISTS stage;
+
 DROP TABLE IF EXISTS race;
+
 DROP TABLE IF EXISTS category;
+
+DROP TABLE IF EXISTS player_session;
+
 DROP TABLE IF EXISTS player_team_roster;
+
 DROP TABLE IF EXISTS player_team;
+
 DROP TABLE IF EXISTS player;
+
 DROP TABLE IF EXISTS rider;
+
 DROP TABLE IF EXISTS nationality;
+
 DROP TABLE IF EXISTS pro_team;
+
 DROP TABLE IF EXISTS game;
 
 -- Game table for different game years and genders
@@ -32,9 +45,7 @@ CREATE TABLE IF NOT EXISTS pro_team (
 );
 
 -- Nationality reference table
-CREATE TABLE IF NOT EXISTS nationality (
-    nationality CHAR(3) NOT NULL PRIMARY KEY
-);
+CREATE TABLE IF NOT EXISTS nationality (nationality CHAR(3) NOT NULL PRIMARY KEY);
 
 -- Riders
 CREATE TABLE IF NOT EXISTS rider (
@@ -67,7 +78,8 @@ CREATE TABLE IF NOT EXISTS player_session (
     session_token TEXT NOT NULL UNIQUE,
     expires_at DATETIME NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (player_id) REFERENCES player(player_id) ON DELETE CASCADE;
+    FOREIGN KEY (player_id) REFERENCES player(player_id) ON DELETE CASCADE
+
 );
 
 -- Player teams
@@ -97,9 +109,7 @@ CREATE TABLE IF NOT EXISTS player_team_roster (
 );
 
 -- Race categories
-CREATE TABLE IF NOT EXISTS category (
-    category TEXT PRIMARY KEY
-);
+CREATE TABLE IF NOT EXISTS category (category TEXT PRIMARY KEY);
 
 -- Races
 CREATE TABLE IF NOT EXISTS race (
@@ -119,7 +129,8 @@ CREATE TABLE IF NOT EXISTS stage (
     race_id INTEGER NOT NULL,
     stage_number INTEGER NOT NULL,
     stage_date DATE NOT NULL,
-    stage_type TEXT, -- 'stage' or 'one-day'
+    stage_type TEXT,
+    -- 'stage' or 'one-day'
     UNIQUE(race_id, stage_number),
     FOREIGN KEY (race_id) REFERENCES race(race_id)
 );
@@ -145,8 +156,10 @@ CREATE TABLE IF NOT EXISTS jersey_holder (
     rider_name TEXT NOT NULL,
     sex CHAR(1) NOT NULL,
     year INTEGER NOT NULL,
-    jersey_type TEXT NOT NULL, -- 'leader', 'points', 'mountain', 'other'
-    is_final BOOLEAN DEFAULT FALSE, -- true for final jersey, false for intermediate
+    jersey_type TEXT NOT NULL,
+    -- 'leader', 'points', 'mountain', 'other'
+    is_final BOOLEAN DEFAULT FALSE,
+    -- true for final jersey, false for intermediate
     points_awarded INTEGER DEFAULT 0,
     UNIQUE(stage_id, rider_name, sex, year, jersey_type),
     FOREIGN KEY (stage_id) REFERENCES stage(stage_id),
@@ -154,7 +167,9 @@ CREATE TABLE IF NOT EXISTS jersey_holder (
 );
 
 -- Insert default categories
-INSERT OR IGNORE INTO category (category) VALUES 
+INSERT
+    OR IGNORE INTO category (category)
+VALUES
     ('Grand Tours'),
     ('Monuments and Worlds'),
     ('Top Stage Races'),
@@ -165,10 +180,49 @@ INSERT OR IGNORE INTO category (category) VALUES
     ('Hour Record');
 
 -- Insert some sample nationalities
-INSERT OR IGNORE INTO nationality (nationality) VALUES 
-    ('USA'), ('GBR'), ('FRA'), ('ITA'), ('ESP'), ('GER'), ('BEL'), ('NED'), 
-    ('AUS'), ('COL'), ('SLO'), ('DEN'), ('NOR'), ('SWE'), ('SUI'), ('AUT'),
-    ('POL'), ('CZE'), ('SVK'), ('POR'), ('IRL'), ('CAN'), ('RSA'), ('NZL'),
-    ('JPN'), ('CHN'), ('KAZ'), ('RUS'), ('UKR'), ('LAT'), ('LIT'), ('EST'),
-    ('FIN'), ('HUN'), ('BUL'), ('ROU'), ('TUR'), ('GRE'), ('CRO'), ('SRB'),
-    ('BIH'), ('MNE'), ('MKD');
+INSERT
+    OR IGNORE INTO nationality (nationality)
+VALUES
+    ('USA'),
+    ('GBR'),
+    ('FRA'),
+    ('ITA'),
+    ('ESP'),
+    ('GER'),
+    ('BEL'),
+    ('NED'),
+    ('AUS'),
+    ('COL'),
+    ('SLO'),
+    ('DEN'),
+    ('NOR'),
+    ('SWE'),
+    ('SUI'),
+    ('AUT'),
+    ('POL'),
+    ('CZE'),
+    ('SVK'),
+    ('POR'),
+    ('IRL'),
+    ('CAN'),
+    ('RSA'),
+    ('NZL'),
+    ('JPN'),
+    ('CHN'),
+    ('KAZ'),
+    ('RUS'),
+    ('UKR'),
+    ('LAT'),
+    ('LIT'),
+    ('EST'),
+    ('FIN'),
+    ('HUN'),
+    ('BUL'),
+    ('ROU'),
+    ('TUR'),
+    ('GRE'),
+    ('CRO'),
+    ('SRB'),
+    ('BIH'),
+    ('MNE'),
+    ('MKD');
