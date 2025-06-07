@@ -642,9 +642,9 @@ router.get('/api/races/:year/:sex', async (request, env, params) => {
   try {
     const { year, sex } = params
     
-    const sql = `SELECT r.*, c.category
+    const sql = `SELECT r.*, c.description as category
                  FROM race r
-                 JOIN category c ON r.category = c.category
+                 JOIN category c ON r.category = c.category_id
                  WHERE r.year = ? AND r.sex = ?
                  ORDER BY r.start_date, r.race_name`
 
