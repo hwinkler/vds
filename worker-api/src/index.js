@@ -114,12 +114,66 @@ function requireAuth(request) {
 }
 
 // Helper function to handle errors
-function handleError(error) {
+function handleError(error, env) {
   console.error('API Error:', error)
   return Response.json({ error: error.message }, { 
     status: error.name === 'AuthError' ? 401 : 500,
     headers: corsHeaders 
   })
+}
+
+// Reddit OAuth configuration - these will be set in wrangler.toml [vars] section
+function getRedditConfig(env) {
+  return {
+    clientId: env.REDDIT_CLIENT_ID,
+    clientSecret: env.REDDIT_CLIENT_SECRET,
+    redirectUri: env.NODE_ENV === 'development' 
+      ? 'http://localhost:8000/auth/callback/reddit'
+      : 'https://vds2.hughw.workers.dev/auth/callback/reddit'
+  }
+}
+
+// Session management helpers
+function generateSessionToken() {
+  return crypto.randomUUID()
+}
+
+async function setSessionCookie(response, sessionToken) {
+  const cookieOptions = [
+    `session=${sessionToken}`,
+    'HttpOnly',
+    'Secure',
+    'SameSite=Lax',
+    'Path=/',
+    'Max-Age=2592000' // 30 days
+  ]
+  response.headers.set('Set-Cookie', cookieOptions.join('; '))
+  return response
+}
+
+function getSessionFromRequest(request) {
+  const cookies = request.headers.get('Cookie') || ''
+  const sessionMatch = cookies.match(/session=([^;]+)/)
+  return sessionMatch ? sessionMatch[1] : null
+}
+
+// Authentication middleware
+async function requireAuthToken(request, env) {
+  const sessionToken = getSessionFromRequest(request)
+  if (!sessionToken) {
+    throw new Error('No session found')
+  }
+
+  // Get player from session (you'll need to store sessions in KV or D1)
+  const session = await env.DB.prepare(
+    'SELECT player_id FROM player_session WHERE session_token = ? AND expires_at > datetime("now")'
+  ).bind(sessionToken).first()
+
+  if (!session) {
+    throw new Error('Invalid or expired session')
+  }
+
+  return session.player_id
 }
 
 // Health check endpoint
@@ -131,13 +185,147 @@ router.get('/health', async () => {
   }, { headers: corsHeaders })
 })
 
+// Reddit OAuth routes
+router.get('/auth/reddit', async (request, env) => {
+  const redditConfig = getRedditConfig(env)
+  const state = crypto.randomUUID()
+  const scope = 'identity'
+  
+  // Store state in session or database for verification
+  const authUrl = new URL('https://www.reddit.com/api/v1/authorize')
+  authUrl.searchParams.set('client_id', redditConfig.clientId)
+  authUrl.searchParams.set('response_type', 'code')
+  authUrl.searchParams.set('state', state)
+  authUrl.searchParams.set('redirect_uri', redditConfig.redirectUri)
+  authUrl.searchParams.set('duration', 'temporary')
+  authUrl.searchParams.set('scope', scope)
+
+  return Response.redirect(authUrl.toString(), 302)
+})
+
+router.get('/auth/callback/reddit', async (request, env) => {
+  try {
+    const redditConfig = getRedditConfig(env)
+    const url = new URL(request.url)
+    const code = url.searchParams.get('code')
+    const state = url.searchParams.get('state')
+    
+    if (!code) {
+      throw new Error('No authorization code received')
+    }
+
+    // Exchange code for access token
+    const tokenResponse = await fetch('https://www.reddit.com/api/v1/access_token', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${btoa(`${redditConfig.clientId}:${redditConfig.clientSecret}`)}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'VDS:v1.0 (by /u/yourusername)'
+      },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: redditConfig.redirectUri
+      })
+    })
+
+    if (!tokenResponse.ok) {
+      throw new Error('Failed to exchange code for token')
+    }
+
+    const tokenData = await tokenResponse.json()
+    
+    // Get user info from Reddit
+    const userResponse = await fetch('https://oauth.reddit.com/api/v1/me', {
+      headers: {
+        'Authorization': `Bearer ${tokenData.access_token}`,
+        'User-Agent': 'VDS:v1.0 (by /u/yourusername)'
+      }
+    })
+
+    if (!userResponse.ok) {
+      throw new Error('Failed to get user info')
+    }
+
+    const userData = await userResponse.json()
+    
+    // Check if player exists, create if not
+    let player = await env.DB.prepare(
+      'SELECT * FROM player WHERE oauth_provider = ? AND oauth_id = ?'
+    ).bind('reddit', userData.id).first()
+
+    if (!player) {
+      // Create new player
+      const result = await env.DB.prepare(
+        'INSERT INTO player (player_name, oauth_provider, oauth_id) VALUES (?, ?, ?)'
+      ).bind(userData.name, 'reddit', userData.id).run()
+      
+      player = await env.DB.prepare(
+        'SELECT * FROM player WHERE player_id = ?'
+      ).bind(result.meta.last_row_id).first()
+    }
+
+    // Create session
+    const sessionToken = generateSessionToken()
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+    
+    await env.DB.prepare(
+      'INSERT OR REPLACE INTO player_session (player_id, session_token, expires_at) VALUES (?, ?, ?)'
+    ).bind(player.player_id, sessionToken, expiresAt.toISOString()).run()
+
+    // Set session cookie and redirect to team builder
+    let response = Response.redirect('/team-builder', 302)
+    response = await setSessionCookie(response, sessionToken)
+    
+    return response
+  } catch (error) {
+    console.error('Reddit OAuth error:', error)
+    return Response.redirect('/?error=auth_failed', 302)
+  }
+})
+
+// Check authentication status
+router.get('/auth/me', async (request, env) => {
+  try {
+    const playerId = await requireAuthToken(request, env)
+    const player = await env.DB.prepare(
+      'SELECT player_id, player_name, oauth_provider FROM player WHERE player_id = ?'
+    ).bind(playerId).first()
+    
+    return Response.json(player, { headers: corsHeaders })
+  } catch (error) {
+    return Response.json({ error: 'Not authenticated' }, { 
+      status: 401, 
+      headers: corsHeaders 
+    })
+  }
+})
+
+// Logout
+router.post('/auth/logout', async (request, env) => {
+  try {
+    const sessionToken = getSessionFromRequest(request)
+    if (sessionToken) {
+      await env.DB.prepare(
+        'DELETE FROM player_session WHERE session_token = ?'
+      ).bind(sessionToken).run()
+    }
+    
+    const response = Response.json({ success: true }, { headers: getCorsHeaders(env) })
+    response.headers.set('Set-Cookie', 'session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0')
+    return response
+  } catch (error) {
+    return handleError(error, env)
+  }
+})
+
 // Get all games
 router.get('/api/games', async (request, env) => {
   try {
     const { results } = await env.DB.prepare('SELECT * FROM game ORDER BY year DESC, sex').all()
-    return Response.json(results, { headers: corsHeaders })
+    return Response.json(results, { headers: getCorsHeaders(env) })
   } catch (error) {
-    return handleError(error)
+    return handleError(error, env)
   }
 })
 
@@ -179,9 +367,9 @@ router.get('/api/riders/:year/:sex', async (request, env, params, searchParams) 
     sql += ' ORDER BY r.rider_name'
 
     const { results } = await env.DB.prepare(sql).bind(...queryParams).all()
-    return Response.json(results, { headers: corsHeaders })
+    return Response.json(results, { headers: getCorsHeaders(env) })
   } catch (error) {
-    return handleError(error)
+    return handleError(error, env)
   }
 })
 
@@ -205,9 +393,9 @@ router.get('/api/riders/:year/:sex/scores', async (request, env, params) => {
                  ORDER BY total_score DESC`
 
     const { results } = await env.DB.prepare(sql).bind(parseInt(year), sex).all()
-    return Response.json(results, { headers: corsHeaders })
+    return Response.json(results, { headers: getCorsHeaders(env) })
   } catch (error) {
-    return handleError(error)
+    return handleError(error, env)
   }
 })
 
@@ -234,16 +422,16 @@ router.get('/api/teams/:year/:sex/rankings', async (request, env, params) => {
                  ORDER BY total_score DESC`
 
     const { results } = await env.DB.prepare(sql).bind(parseInt(year), sex).all()
-    return Response.json(results, { headers: corsHeaders })
+    return Response.json(results, { headers: getCorsHeaders(env) })
   } catch (error) {
-    return handleError(error)
+    return handleError(error, env)
   }
 })
 
 // Get player's team
 router.get('/api/team/:year/:sex', async (request, env, params) => {
   try {
-    const playerId = requireAuth(request)
+    const playerId = await requireAuthToken(request, env)
     const { year, sex } = params
 
     // Get player team
@@ -252,7 +440,7 @@ router.get('/api/team/:year/:sex', async (request, env, params) => {
     ).bind(playerId, sex, parseInt(year)).first()
 
     if (!teamQuery) {
-      return Response.json(null, { headers: corsHeaders })
+      return Response.json(null, { headers: getCorsHeaders(env) })
     }
 
     // Get team roster
@@ -268,16 +456,16 @@ router.get('/api/team/:year/:sex', async (request, env, params) => {
 
     const { results: roster } = await env.DB.prepare(rosterSql).bind(teamQuery.team_id).all()
 
-    return Response.json({ ...teamQuery, roster }, { headers: corsHeaders })
+    return Response.json({ ...teamQuery, roster }, { headers: getCorsHeaders(env) })
   } catch (error) {
-    return handleError(error)
+    return handleError(error, env)
   }
 })
 
 // Create or update player's team
 router.post('/api/team/:year/:sex', async (request, env, params) => {
   try {
-    const playerId = requireAuth(request)
+    const playerId = await requireAuthToken(request, env)
     const { year, sex } = params
     const { team_name, riders } = await request.json()
 
@@ -328,9 +516,9 @@ router.post('/api/team/:year/:sex', async (request, env, params) => {
 
     const { results: roster } = await env.DB.prepare(rosterSql).bind(teamId).all()
 
-    return Response.json({ ...team, roster, is_valid: isValid }, { headers: corsHeaders })
+    return Response.json({ ...team, roster, is_valid: isValid }, { headers: getCorsHeaders(env) })
   } catch (error) {
-    return handleError(error)
+    return handleError(error, env)
   }
 })
 
@@ -346,9 +534,9 @@ router.get('/api/races/:year/:sex', async (request, env, params) => {
                  ORDER BY r.start_date, r.race_name`
 
     const { results } = await env.DB.prepare(sql).bind(parseInt(year), sex).all()
-    return Response.json(results, { headers: corsHeaders })
+    return Response.json(results, { headers: getCorsHeaders(env) })
   } catch (error) {
-    return handleError(error)
+    return handleError(error, env)
   }
 })
 
@@ -377,9 +565,9 @@ router.get('/api/races/:raceId/results', async (request, env, params) => {
     return Response.json({
       results: resultsData.results,
       jerseys: jerseyData.results
-    }, { headers: corsHeaders })
+    }, { headers: getCorsHeaders(env) })
   } catch (error) {
-    return handleError(error)
+    return handleError(error, env)
   }
 })
 
@@ -394,7 +582,7 @@ router.post('/api/team/:year/:sex/validate', async (request, env, params) => {
         isValid: false,
         errors: ['No riders selected'],
         warnings: []
-      }, { headers: corsHeaders })
+      }, { headers: getCorsHeaders(env) })
     }
 
     // Get rider data
@@ -460,9 +648,9 @@ router.post('/api/team/:year/:sex/validate', async (request, env, params) => {
       }
     }
 
-    return Response.json(validation, { headers: corsHeaders })
+    return Response.json(validation, { headers: getCorsHeaders(env) })
   } catch (error) {
-    return handleError(error)
+    return handleError(error, env)
   }
 })
 
@@ -518,7 +706,7 @@ export default {
     try {
       return await router.handle(request, env)
     } catch (error) {
-      return handleError(error)
+      return handleError(error, env)
     }
   }
 }

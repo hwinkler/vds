@@ -24,7 +24,7 @@ import Layout from '../components/layout'
 import Seo from '../components/seo'
 import {api} from '../lib/api-config.mjs'
 
-const {fetch, console, URLSearchParams, alert, confirm} = globalThis
+const {fetch, console, URLSearchParams, alert, confirm, window} = globalThis
 const TeamBuilder = () => {
   const [riders, setRiders] = useState([])
   const [selectedRiders, setSelectedRiders] = useState([])
@@ -42,9 +42,63 @@ const TeamBuilder = () => {
   const [sortOrder, setSortOrder] = useState('asc')
   const [validation, setValidation] = useState({isValid: false, errors: [], warnings: []})
   const [saving, setSaving] = useState(false)
+  const [user, setUser] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
 
-  // Mock player ID - in real app this would come from authentication
-  const playerId = 1
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const authUser = await api.get('/auth/me')
+        setUser(authUser)
+      } catch (error) {
+        // Not authenticated, redirect to login
+        if (typeof window !== 'undefined') {
+          const apiUrl = process.env.NODE_ENV === 'development' 
+            ? 'http://localhost:8787' 
+            : ''
+          window.location.href = `${apiUrl}/auth/reddit`
+        }
+        return
+      } finally {
+        setAuthLoading(false)
+      }
+    }
+
+    checkAuth()
+  }, [])
+
+  // Don't render anything until auth check is complete
+  if (authLoading) {
+    return (
+      <Layout>
+        <div style={{padding: '20px', textAlign: 'center'}}>
+          <h2>Checking authentication...</h2>
+        </div>
+      </Layout>
+    )
+  }
+
+  // If no user, show login prompt (shouldn't reach here due to redirect)
+  if (!user) {
+    return (
+      <Layout>
+        <div style={{padding: '20px', textAlign: 'center'}}>
+          <h2>Authentication Required</h2>
+          <p>You need to be logged in to build a team.</p>
+          <a href={`${process.env.NODE_ENV === 'development' ? 'http://localhost:8787' : ''}/auth/reddit`} style={{
+            padding: '10px 20px',
+            backgroundColor: '#ff4500',
+            color: 'white',
+            textDecoration: 'none',
+            borderRadius: '4px'
+          }}>
+            Login with Reddit
+          </a>
+        </div>
+      </Layout>
+    )
+  }
 
   const fetchRiders = React.useCallback(async () => {
     try {
@@ -68,10 +122,10 @@ const TeamBuilder = () => {
   }, [filters, year, sex])
 
   const loadExistingTeam = React.useCallback(async () => {
+    if (!user) return
+    
     try {
-      const team = await api.get(`/api/team/${year}/${sex}`, {
-        headers: {'x-player-id': playerId.toString()}
-      })
+      const team = await api.get(`/api/team/${year}/${sex}`)
 
       if (team && team.roster) {
         setTeamName(team.team_name || '')
@@ -83,7 +137,7 @@ const TeamBuilder = () => {
     } catch (error) {
       console.error('Error loading existing team:', error)
     }
-  }, [year, sex, playerId])
+  }, [year, sex, user])
 
   useEffect(() => {
     fetchRiders()
@@ -159,10 +213,6 @@ const TeamBuilder = () => {
       const result = await api.post(`/api/team/${year}/${sex}`, {
         team_name: teamName,
         riders: selectedRiders
-      }, {
-        headers: {
-          'x-player-id': playerId.toString()
-        }
       })
 
       alert('Team saved successfully!')

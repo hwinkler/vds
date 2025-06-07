@@ -60,6 +60,16 @@ CREATE TABLE IF NOT EXISTS player (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Player sessions for authentication
+CREATE TABLE IF NOT EXISTS player_session (
+    session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id INTEGER NOT NULL,
+    session_token TEXT NOT NULL UNIQUE,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (player_id) REFERENCES player(player_id)
+);
+
 -- Player teams
 CREATE TABLE IF NOT EXISTS player_team (
     team_id INTEGER PRIMARY KEY AUTOINCREMENT,

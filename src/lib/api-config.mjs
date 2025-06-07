@@ -58,6 +58,7 @@ export async function apiRequest(endpoint, options = {}) {
   
   const defaultOptions = {
     timeout: config.timeout,
+    credentials: 'include', // Include cookies with requests
     headers: {
       'Content-Type': 'application/json',
       ...options.headers
