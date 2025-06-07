@@ -22,7 +22,7 @@ export default {
     // API configuration for client-side access
     apiBaseUrl: process.env.NODE_ENV === 'development' 
       ? 'http://localhost:8787' 
-      : 'https://vds-worker-api.your-domain.workers.dev'
+      : '' // Empty for same-origin relative requests via Cloudflare Routes
   },
   plugins: [
     'gatsby-plugin-image',
