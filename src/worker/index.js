@@ -222,8 +222,7 @@ router.get('/auth/callback/reddit', async (request, env) => {
     console.log('🔗 Exchanging code for access token...')
     
     console.log('🔑 Client ID:', env.REDDIT_CLIENT_ID)
-    // console.log('🔑 Client Secret:', env.REDDIT_CLIENT_SECRET?.substring(0, 8) + '... (length: ' + env.REDDIT_CLIENT_SECRET?.length + ')')
-    console.log('🔑 Client Secret:', env.REDDIT_CLIENT_SECRET)
+    console.log('🔑 Client Secret:', env.REDDIT_CLIENT_SECRET?.substring(0, 8) + '... (length: ' + env.REDDIT_CLIENT_SECRET?.length + ')')
     
     const requestBody = new URLSearchParams({
       grant_type: 'authorization_code',
