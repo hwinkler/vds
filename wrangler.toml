@@ -4,6 +4,9 @@ compatibility_date = "2024-12-01"
 
 [vars]
 ENVIRONMENT = "development"
+REDDIT_CLIENT_ID_DEV = "E8uoappKT2d220SGMGGCrQ"
+REDDIT_CLIENT_ID_STAGING = "4RAO1QXtJma39GdP-dyQwg"
+REDDIT_CLIENT_ID_PROD = "LSKIVaIEdblNdyOVY10n4Q"
 
 # Static assets from Gatsby build
 [assets]

@@ -79,3 +79,4 @@ yarn-error.log
 .claude
 worker-api/.wrangler/
 .wrangler
+.dev.vars

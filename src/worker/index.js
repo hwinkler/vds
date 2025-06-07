@@ -95,11 +95,29 @@ const corsHeaders = {
 
 // Auth middleware helper
 function requireAuth(request) {
-  const playerId = request.headers.get('x-player-id')
-  if (!playerId) {
-    throw new Error('Authentication required')
+  const sessionData = getSessionFromRequest(request)
+  
+  if (!sessionData) {
+    throw new Error('Authentication required - no session')
   }
-  return parseInt(playerId)
+
+  try {
+    const session = JSON.parse(decodeURIComponent(sessionData))
+    
+    // Check if session is valid (not expired)
+    const maxAge = 30 * 24 * 60 * 60 * 1000 // 30 days in ms
+    if (Date.now() - session.created_at > maxAge) {
+      throw new Error('Authentication required - session expired')
+    }
+    
+    if (!session.player_id || !session.authenticated) {
+      throw new Error('Authentication required - invalid session')
+    }
+    
+    return session.player_id // Return player_id for database operations
+  } catch (error) {
+    throw new Error('Authentication required - invalid session data')
+  }
 }
 
 // Helper function to handle errors
@@ -118,6 +136,303 @@ router.get('/health', async () => {
     timestamp: new Date().toISOString(),
     service: 'VDS Full-Stack Worker'
   }, { headers: corsHeaders })
+})
+
+// Get base URL based on environment
+function getBaseUrl(request) {
+  const url = new URL(request.url)
+  
+  // In development (localhost), use port 8000 (Gatsby dev server)
+  if (url.hostname === 'localhost') {
+    return 'http://localhost:8000'
+  }
+  
+  // In production, use the actual origin
+  return url.origin
+}
+
+// Get Reddit credentials based on environment
+function getRedditCredentials(request, env) {
+  const url = new URL(request.url)
+  
+  if (url.hostname === 'localhost') {
+    // Development
+    return {
+      clientId: env.REDDIT_CLIENT_ID_DEV || env.REDDIT_CLIENT_ID,
+      clientSecret: env.REDDIT_CLIENT_SECRET_DEV || env.REDDIT_CLIENT_SECRET
+    }
+  } else if (url.hostname === 'vds2.hughw.workers.dev') {
+    // Staging
+    return {
+      clientId: env.REDDIT_CLIENT_ID_STAGING,
+      clientSecret: env.REDDIT_CLIENT_SECRET_STAGING
+    }
+  } else {
+    // Production (vds2.app)
+    return {
+      clientId: env.REDDIT_CLIENT_ID_PROD,
+      clientSecret: env.REDDIT_CLIENT_SECRET_PROD
+    }
+  }
+}
+
+// Session management helpers
+function getSessionFromRequest(request) {
+  const cookies = request.headers.get('Cookie') || ''
+  const sessionMatch = cookies.match(/reddit_session=([^;]+)/)
+  return sessionMatch ? sessionMatch[1] : null
+}
+
+function setSessionCookie(response, sessionData) {
+  const sessionValue = encodeURIComponent(JSON.stringify(sessionData))
+  const cookieOptions = [
+    `reddit_session=${sessionValue}`,
+    'HttpOnly',
+    'SameSite=Lax', 
+    'Path=/',
+    'Max-Age=2592000' // 30 days
+  ]
+  
+  // Only add Secure in production
+  if (typeof process !== 'undefined' && process.env.NODE_ENV === 'production') {
+    cookieOptions.push('Secure')
+  }
+  
+  response.headers.set('Set-Cookie', cookieOptions.join('; '))
+  return response
+}
+
+// Reddit OAuth routes
+router.get('/auth/reddit', async (request, env) => {
+  const baseUrl = getBaseUrl(request)
+  const credentials = getRedditCredentials(request, env)
+  const state = crypto.randomUUID()
+  const scope = 'identity'
+  
+  console.log('🚀 Starting Reddit OAuth flow...')
+  console.log('📍 Base URL:', baseUrl)
+  console.log('🔑 Client ID:', credentials.clientId)
+  console.log('🎯 Redirect URI:', `${baseUrl}/auth/callback/reddit`)
+  
+  const authUrl = new URL('https://www.reddit.com/api/v1/authorize')
+  authUrl.searchParams.set('client_id', credentials.clientId)
+  authUrl.searchParams.set('response_type', 'code')
+  authUrl.searchParams.set('state', state)
+  authUrl.searchParams.set('redirect_uri', `${baseUrl}/auth/callback/reddit`)
+  authUrl.searchParams.set('duration', 'temporary')
+  authUrl.searchParams.set('scope', scope)
+
+  console.log('↗️ Redirecting to Reddit OAuth:', authUrl.toString())
+  
+  return Response.redirect(authUrl.toString(), 302)
+})
+
+router.get('/auth/callback/reddit', async (request, env) => {
+  const baseUrl = getBaseUrl(request)
+  const credentials = getRedditCredentials(request, env)
+  
+  try {
+    const url = new URL(request.url)
+    const code = url.searchParams.get('code')
+    const state = url.searchParams.get('state')
+    
+    console.log('🔄 Reddit OAuth callback received', { 
+      hasCode: !!code, 
+      state: state?.substring(0, 8) + '...', 
+      baseUrl 
+    })
+    
+    if (!code) {
+      throw new Error('No authorization code received')
+    }
+
+    console.log('🔗 Exchanging code for access token...')
+    
+    console.log('🔑 Client ID:', credentials.clientId)
+    console.log('🔑 Client Secret:', credentials.clientSecret?.substring(0, 8) + '... (length: ' + credentials.clientSecret?.length + ')')
+    
+    const requestBody = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: `${baseUrl}/auth/callback/reddit`
+    })
+    
+    console.log('📤 Request body:', requestBody.toString())
+    console.log('🎯 Redirect URI in request:', `${baseUrl}/auth/callback/reddit`)
+    
+    // Exchange code for access token
+    const tokenResponse = await fetch('https://www.reddit.com/api/v1/access_token', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${btoa(`${credentials.clientId}:${credentials.clientSecret}`)}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'VDS:v1.0 (by /u/yourusername)'
+      },
+      body: requestBody
+    })
+
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text()
+      console.error('❌ Token exchange failed:', tokenResponse.status, errorText)
+      throw new Error('Failed to exchange code for token')
+    }
+
+    const tokenData = await tokenResponse.json()
+    console.log('✅ Access token received, fetching user info...')
+    
+    // Get user info from Reddit
+    const userResponse = await fetch('https://oauth.reddit.com/api/v1/me', {
+      headers: {
+        'Authorization': `Bearer ${tokenData.access_token}`,
+        'User-Agent': 'VDS:v1.0 (by /u/yourusername)'
+      }
+    })
+
+    if (!userResponse.ok) {
+      const errorText = await userResponse.text()
+      console.error('❌ User info fetch failed:', userResponse.status, errorText)
+      throw new Error('Failed to get user info')
+    }
+
+    const userData = await userResponse.json()
+    console.log('👤 Reddit user info received:', { 
+      id: userData.id, 
+      name: userData.name,
+      verified: userData.verified 
+    })
+    
+    console.log('🔍 Looking up player in database...')
+    
+    // Check if player exists, create if not
+    let player = await env.DB.prepare(
+      'SELECT * FROM player WHERE oauth_provider = ? AND oauth_id = ?'
+    ).bind('reddit', userData.id).first() // Using userData.id (Reddit user ID) as oauth_id
+    
+    if (!player) {
+      // Create new player
+      console.log(`✨ Creating new player for Reddit user: ${userData.name} (ID: ${userData.id})`)
+      const result = await env.DB.prepare(
+        'INSERT INTO player (player_name, oauth_provider, oauth_id) VALUES (?, ?, ?)'
+      ).bind(userData.name, 'reddit', userData.id).run()
+      
+      console.log(`📝 Player created with ID: ${result.meta.last_row_id}`)
+      
+      // Get the newly created player
+      player = await env.DB.prepare(
+        'SELECT * FROM player WHERE player_id = ?'
+      ).bind(result.meta.last_row_id).first()
+    } else {
+      console.log(`🔄 Existing player found: ${player.player_name} (Player ID: ${player.player_id})`)
+    }
+
+    // Create session data with player info
+    const sessionData = {
+      player_id: player.player_id,
+      reddit_id: userData.id,
+      reddit_username: userData.name,
+      player_name: player.player_name,
+      authenticated: true,
+      created_at: Date.now()
+    }
+
+    console.log('🍪 Setting session cookie and redirecting to team builder...')
+    console.log('📊 Session data:', { 
+      player_id: sessionData.player_id, 
+      player_name: sessionData.player_name,
+      reddit_username: sessionData.reddit_username 
+    })
+
+    // Create redirect response with session cookie
+    const sessionValue = encodeURIComponent(JSON.stringify(sessionData))
+    const cookieOptions = [
+      `reddit_session=${sessionValue}`,
+      'HttpOnly',
+      'SameSite=Lax', 
+      'Path=/',
+      'Max-Age=2592000' // 30 days
+    ]
+    
+    // Only add Secure in production
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'production') {
+      cookieOptions.push('Secure')
+    }
+    
+    // Create response with headers that can be modified
+    const response = new Response(null, {
+      status: 302,
+      headers: {
+        'Location': `${baseUrl}/team-builder`,
+        'Set-Cookie': cookieOptions.join('; ')
+      }
+    })
+    
+    return response
+  } catch (error) {
+    console.error('Reddit OAuth error:', error)
+    return Response.redirect(`${baseUrl}/?error=auth_failed`, 302)
+  }
+})
+
+// Check authentication status
+router.get('/auth/me', async (request, env) => {
+  try {
+    console.log('🔍 Checking authentication status...')
+    const sessionData = getSessionFromRequest(request)
+    
+    if (!sessionData) {
+      console.log('❌ No session found')
+      return Response.json({ error: 'Not authenticated' }, { 
+        status: 401, 
+        headers: corsHeaders 
+      })
+    }
+
+    const session = JSON.parse(decodeURIComponent(sessionData))
+    console.log('🍪 Session found for player:', session.player_name)
+    
+    // Check if session is valid (not expired)
+    const maxAge = 30 * 24 * 60 * 60 * 1000 // 30 days in ms
+    const sessionAge = Date.now() - session.created_at
+    
+    if (sessionAge > maxAge) {
+      console.log('⏰ Session expired:', { ageInDays: sessionAge / (24 * 60 * 60 * 1000) })
+      return Response.json({ error: 'Session expired' }, { 
+        status: 401, 
+        headers: corsHeaders 
+      })
+    }
+    
+    console.log('✅ Valid session found:', { 
+      player_id: session.player_id, 
+      player_name: session.player_name 
+    })
+    
+    return Response.json({
+      player_id: session.player_id,
+      player_name: session.player_name,
+      reddit_id: session.reddit_id,
+      reddit_username: session.reddit_username,
+      oauth_provider: 'reddit',
+      authenticated: true
+    }, { headers: corsHeaders })
+    
+  } catch (error) {
+    console.error('❌ Auth check error:', error)
+    return Response.json({ error: 'Invalid session' }, { 
+      status: 401, 
+      headers: corsHeaders 
+    })
+  }
+})
+
+// Logout route
+router.post('/auth/logout', async (request, env) => {
+  let response = Response.json({ success: true }, { headers: corsHeaders })
+  
+  // Clear the session cookie
+  response.headers.set('Set-Cookie', 'reddit_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0')
+  
+  return response
 })
 
 // Get all games
@@ -506,8 +821,8 @@ export default {
     }
 
     try {
-      // Try API routes first if path starts with /api/ or /health
-      if (url.pathname.startsWith('/api/') || url.pathname === '/health') {
+      // Try API and auth routes first
+      if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/') || url.pathname === '/health') {
         const apiResponse = await router.handle(request, env)
         if (apiResponse) {
           return apiResponse

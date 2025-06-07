@@ -24,7 +24,7 @@ import Layout from '../components/layout'
 import Seo from '../components/seo'
 import {api} from '../lib/api-config.mjs'
 
-const {fetch, console, URLSearchParams, alert, confirm} = globalThis
+const {fetch, console, URLSearchParams, alert, confirm, window} = globalThis
 const TeamBuilder = () => {
   const [riders, setRiders] = useState([])
   const [selectedRiders, setSelectedRiders] = useState([])
@@ -42,10 +42,10 @@ const TeamBuilder = () => {
   const [sortOrder, setSortOrder] = useState('asc')
   const [validation, setValidation] = useState({isValid: false, errors: [], warnings: []})
   const [saving, setSaving] = useState(false)
+  const [user, setUser] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
 
-  // Mock player ID - in real app this would come from authentication
-  const playerId = 1
-
+  // All hooks must be at the top before any conditional returns
   const fetchRiders = React.useCallback(async () => {
     try {
       setLoading(true)
@@ -68,10 +68,10 @@ const TeamBuilder = () => {
   }, [filters, year, sex])
 
   const loadExistingTeam = React.useCallback(async () => {
+    if (!user) return
+    
     try {
-      const team = await api.get(`/api/team/${year}/${sex}`, {
-        headers: {'x-player-id': playerId.toString()}
-      })
+      const team = await api.get(`/api/team/${year}/${sex}`)
 
       if (team && team.roster) {
         setTeamName(team.team_name || '')
@@ -83,7 +83,27 @@ const TeamBuilder = () => {
     } catch (error) {
       console.error('Error loading existing team:', error)
     }
-  }, [year, sex, playerId])
+  }, [year, sex, user])
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const authUser = await api.get('/auth/me')
+        setUser(authUser)
+      } catch (error) {
+        // Not authenticated, redirect to login
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth/reddit'
+        }
+        return
+      } finally {
+        setAuthLoading(false)
+      }
+    }
+
+    checkAuth()
+  }, [])
 
   useEffect(() => {
     fetchRiders()
@@ -109,6 +129,37 @@ const TeamBuilder = () => {
       validateTeam()
     }
   }, [selectedRiders, sex, year])
+
+  // Conditional returns AFTER all hooks
+  if (authLoading) {
+    return (
+      <Layout>
+        <div style={{padding: '20px', textAlign: 'center'}}>
+          <h2>Checking authentication...</h2>
+        </div>
+      </Layout>
+    )
+  }
+
+  if (!user) {
+    return (
+      <Layout>
+        <div style={{padding: '20px', textAlign: 'center'}}>
+          <h2>Authentication Required</h2>
+          <p>You need to be logged in to build a team.</p>
+          <a href="/auth/reddit" style={{
+            padding: '10px 20px',
+            backgroundColor: '#ff4500',
+            color: 'white',
+            textDecoration: 'none',
+            borderRadius: '4px'
+          }}>
+            Login with Reddit
+          </a>
+        </div>
+      </Layout>
+    )
+  }
 
 
   const sortedRiders = [...riders].sort((a, b) => {
@@ -159,10 +210,6 @@ const TeamBuilder = () => {
       const result = await api.post(`/api/team/${year}/${sex}`, {
         team_name: teamName,
         riders: selectedRiders
-      }, {
-        headers: {
-          'x-player-id': playerId.toString()
-        }
       })
 
       alert('Team saved successfully!')
@@ -186,7 +233,14 @@ const TeamBuilder = () => {
   return (
     <Layout>
       <div style={{padding: '20px'}}>
-        <h1>Team Builder</h1>
+        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px'}}>
+          <h1>Team Builder</h1>
+          <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+            <span style={{fontSize: '16px', fontWeight: 'bold', color: '#7026b9'}}>
+              Welcome, {user.player_name}!
+            </span>
+          </div>
+        </div>
 
         <nav style={{marginBottom: '20px', padding: '10px', backgroundColor: '#f5f5f5'}}>
           <Link to="/" style={{marginRight: '20px'}}>Home</Link>

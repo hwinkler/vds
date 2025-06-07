@@ -18,11 +18,8 @@ export default {
     title: 'Virtual Directeur Sportif',
     description: 'The world\'s most popular yet humble fantasy cycling game.',
     author: '@hughw.net',
-    siteUrl: 'https://vds2.app/',
-    // API configuration for client-side access
-    apiBaseUrl: process.env.NODE_ENV === 'development' 
-      ? 'http://localhost:8787' 
-      : '' // Empty for same-origin relative requests via Cloudflare Routes
+    siteUrl: 'https://vds2.app/'
+    // No apiBaseUrl needed - using relative paths with proxy in dev, same-origin in production
   },
   plugins: [
     'gatsby-plugin-image',
