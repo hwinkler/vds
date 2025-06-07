@@ -138,6 +138,19 @@ router.get('/health', async () => {
   }, { headers: corsHeaders })
 })
 
+// Get base URL based on environment
+function getBaseUrl(request) {
+  const url = new URL(request.url)
+  
+  // In development (localhost), use port 8000 (Gatsby dev server)
+  if (url.hostname === 'localhost') {
+    return 'http://localhost:8000'
+  }
+  
+  // In production, use the actual origin
+  return url.origin
+}
+
 // Session management helpers
 function getSessionFromRequest(request) {
   const cookies = request.headers.get('Cookie') || ''
@@ -166,6 +179,7 @@ function setSessionCookie(response, sessionData) {
 
 // Reddit OAuth routes
 router.get('/auth/reddit', async (request, env) => {
+  const baseUrl = getBaseUrl(request)
   const state = crypto.randomUUID()
   const scope = 'identity'
   
@@ -173,7 +187,7 @@ router.get('/auth/reddit', async (request, env) => {
   authUrl.searchParams.set('client_id', env.REDDIT_CLIENT_ID)
   authUrl.searchParams.set('response_type', 'code')
   authUrl.searchParams.set('state', state)
-  authUrl.searchParams.set('redirect_uri', 'http://localhost:8000/auth/callback/reddit')
+  authUrl.searchParams.set('redirect_uri', `${baseUrl}/auth/callback/reddit`)
   authUrl.searchParams.set('duration', 'temporary')
   authUrl.searchParams.set('scope', scope)
 
@@ -181,6 +195,8 @@ router.get('/auth/reddit', async (request, env) => {
 })
 
 router.get('/auth/callback/reddit', async (request, env) => {
+  const baseUrl = getBaseUrl(request)
+  
   try {
     const url = new URL(request.url)
     const code = url.searchParams.get('code')
@@ -201,7 +217,7 @@ router.get('/auth/callback/reddit', async (request, env) => {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code,
-        redirect_uri: 'http://localhost:8000/auth/callback/reddit'
+        redirect_uri: `${baseUrl}/auth/callback/reddit`
       })
     })
 
@@ -234,13 +250,13 @@ router.get('/auth/callback/reddit', async (request, env) => {
     }
 
     // Set session cookie and redirect to team builder
-    let response = Response.redirect('http://localhost:8000/team-builder', 302)
+    let response = Response.redirect(`${baseUrl}/team-builder`, 302)
     response = setSessionCookie(response, sessionData)
     
     return response
   } catch (error) {
     console.error('Reddit OAuth error:', error)
-    return Response.redirect('http://localhost:8000/?error=auth_failed', 302)
+    return Response.redirect(`${baseUrl}/?error=auth_failed`, 302)
   }
 })
 
