@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS player_session (
     session_token TEXT NOT NULL UNIQUE,
     expires_at DATETIME NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (player_id) REFERENCES player(player_id)
+    FOREIGN KEY (player_id) REFERENCES player(player_id) ON DELETE CASCADE;
 );
 
 -- Player teams

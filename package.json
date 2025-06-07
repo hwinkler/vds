@@ -51,7 +51,7 @@
     "serve": "gatsby serve",
     "clean": "gatsby clean",
     "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1",
-    "worker:dev": "wrangler dev --local",
+    "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
     "dev": "concurrently \"yarn run develop\" \"yarn run worker:dev\"",
     "db:init": "node database/init.js",
