@@ -151,6 +151,31 @@ function getBaseUrl(request) {
   return url.origin
 }
 
+// Get Reddit credentials based on environment
+function getRedditCredentials(request, env) {
+  const url = new URL(request.url)
+  
+  if (url.hostname === 'localhost') {
+    // Development
+    return {
+      clientId: env.REDDIT_CLIENT_ID_DEV || env.REDDIT_CLIENT_ID,
+      clientSecret: env.REDDIT_CLIENT_SECRET_DEV || env.REDDIT_CLIENT_SECRET
+    }
+  } else if (url.hostname === 'vds2.hughw.workers.dev') {
+    // Staging
+    return {
+      clientId: env.REDDIT_CLIENT_ID_STAGING,
+      clientSecret: env.REDDIT_CLIENT_SECRET_STAGING
+    }
+  } else {
+    // Production (vds2.app)
+    return {
+      clientId: env.REDDIT_CLIENT_ID_PROD,
+      clientSecret: env.REDDIT_CLIENT_SECRET_PROD
+    }
+  }
+}
+
 // Session management helpers
 function getSessionFromRequest(request) {
   const cookies = request.headers.get('Cookie') || ''
@@ -180,16 +205,17 @@ function setSessionCookie(response, sessionData) {
 // Reddit OAuth routes
 router.get('/auth/reddit', async (request, env) => {
   const baseUrl = getBaseUrl(request)
+  const credentials = getRedditCredentials(request, env)
   const state = crypto.randomUUID()
   const scope = 'identity'
   
   console.log('🚀 Starting Reddit OAuth flow...')
   console.log('📍 Base URL:', baseUrl)
-  console.log('🔑 Client ID:', env.REDDIT_CLIENT_ID)
+  console.log('🔑 Client ID:', credentials.clientId)
   console.log('🎯 Redirect URI:', `${baseUrl}/auth/callback/reddit`)
   
   const authUrl = new URL('https://www.reddit.com/api/v1/authorize')
-  authUrl.searchParams.set('client_id', env.REDDIT_CLIENT_ID)
+  authUrl.searchParams.set('client_id', credentials.clientId)
   authUrl.searchParams.set('response_type', 'code')
   authUrl.searchParams.set('state', state)
   authUrl.searchParams.set('redirect_uri', `${baseUrl}/auth/callback/reddit`)
@@ -203,6 +229,7 @@ router.get('/auth/reddit', async (request, env) => {
 
 router.get('/auth/callback/reddit', async (request, env) => {
   const baseUrl = getBaseUrl(request)
+  const credentials = getRedditCredentials(request, env)
   
   try {
     const url = new URL(request.url)
@@ -221,8 +248,8 @@ router.get('/auth/callback/reddit', async (request, env) => {
 
     console.log('🔗 Exchanging code for access token...')
     
-    console.log('🔑 Client ID:', env.REDDIT_CLIENT_ID)
-    console.log('🔑 Client Secret:', env.REDDIT_CLIENT_SECRET?.substring(0, 8) + '... (length: ' + env.REDDIT_CLIENT_SECRET?.length + ')')
+    console.log('🔑 Client ID:', credentials.clientId)
+    console.log('🔑 Client Secret:', credentials.clientSecret?.substring(0, 8) + '... (length: ' + credentials.clientSecret?.length + ')')
     
     const requestBody = new URLSearchParams({
       grant_type: 'authorization_code',
@@ -237,7 +264,7 @@ router.get('/auth/callback/reddit', async (request, env) => {
     const tokenResponse = await fetch('https://www.reddit.com/api/v1/access_token', {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${btoa(`${env.REDDIT_CLIENT_ID}:${env.REDDIT_CLIENT_SECRET}`)}`,
+        'Authorization': `Basic ${btoa(`${credentials.clientId}:${credentials.clientSecret}`)}`,
         'Content-Type': 'application/x-www-form-urlencoded',
         'User-Agent': 'VDS:v1.0 (by /u/yourusername)'
       },
