@@ -81,15 +81,15 @@ INSERT OR REPLACE INTO player (player_id, player_name, email) VALUES
 (1, 'Test Player', 'test@example.com');
 
 -- Create sample races
-INSERT OR REPLACE INTO race (race_name, category, sex, year, start_date, end_date) VALUES 
-('Tour de France', 'Grand Tours', 'm', 2024, '2024-07-01', '2024-07-23'),
-('Giro d''Italia', 'Grand Tours', 'm', 2024, '2024-05-04', '2024-05-26'),
-('Vuelta a España', 'Grand Tours', 'm', 2024, '2024-08-19', '2024-09-10'),
-('Tour de France Femmes', 'Grand Tours', 'f', 2024, '2024-08-12', '2024-08-18'),
-('Giro d''Italia Women', 'Grand Tours', 'f', 2024, '2024-06-30', '2024-07-07'),
-('Paris-Roubaix', 'Monuments and Worlds', 'm', 2024, '2024-04-07', '2024-04-07'),
-('Tour of Flanders', 'Monuments and Worlds', 'm', 2024, '2024-03-31', '2024-03-31'),
-('Liège-Bastogne-Liège', 'Monuments and Worlds', 'm', 2024, '2024-04-21', '2024-04-21');
+INSERT OR REPLACE INTO race (race_name, category, sex, year, start_date) VALUES 
+('Tour de France', 1, 'm', 2024, '2024-07-01'),
+('Giro d''Italia', 1, 'm', 2024, '2024-05-04'),
+('Vuelta a España', 1, 'm', 2024, '2024-08-19'),
+('Tour de France Femmes', 1, 'f', 2024, '2024-08-12'),
+('Giro d''Italia Women', 1, 'f', 2024, '2024-06-30'),
+('Paris-Roubaix', 2, 'm', 2024, '2024-04-07'),
+('Tour of Flanders', 2, 'm', 2024, '2024-03-31'),
+('Liège-Bastogne-Liège', 2, 'm', 2024, '2024-04-21');
 
 INSERT OR REPLACE INTO player_team(
     team_id,

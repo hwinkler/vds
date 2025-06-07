@@ -105,22 +105,24 @@ CREATE TABLE IF NOT EXISTS player_team_roster (
     year INTEGER NOT NULL,
     PRIMARY KEY (team_id, rider_name, sex, year),
     FOREIGN KEY (team_id) REFERENCES player_team(team_id),
-    FOREIGN KEY (year, sex, rider_name) REFERENCES rider(year, sex, rider_name)
+    FOREIGN KEY (year, sex, rider_name) REFERENCES rider(year, sex, rider_name) 
 );
 
 -- Race categories
-CREATE TABLE IF NOT EXISTS category (category TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS category (
+    category_id INTEGER PRIMARY KEY,
+    description TEXT NOT NULL
+);
 
 -- Races
 CREATE TABLE IF NOT EXISTS race (
     race_id INTEGER PRIMARY KEY AUTOINCREMENT,
     race_name TEXT NOT NULL UNIQUE,
-    category TEXT NOT NULL,
+    category INTEGER NOT NULL,
     sex CHAR(1) NOT NULL CHECK (sex IN ('m', 'f')),
     year INTEGER NOT NULL,
     start_date DATE,
-    end_date DATE,
-    FOREIGN KEY (category) REFERENCES category(category)
+    FOREIGN KEY (category) REFERENCES category(category_id)
 );
 
 -- Race stages
@@ -168,16 +170,16 @@ CREATE TABLE IF NOT EXISTS jersey_holder (
 
 -- Insert default categories
 INSERT
-    OR IGNORE INTO category (category)
+    OR IGNORE INTO category (category_id, description)
 VALUES
-    ('Grand Tours'),
-    ('Monuments and Worlds'),
-    ('Top Stage Races'),
-    ('Top Classics'),
-    ('Best of the Rest'),
-    ('Minor Races'),
-    ('National Champs'),
-    ('Hour Record');
+    (1, 'Grand Tours'),
+    (2, 'Monuments and Worlds'),
+    (3, 'Top Stage Races'),
+    (4, 'Top Classics'),
+    (5, 'Best of the Rest'),
+    (6, 'Minor Races'),
+    (7, 'National Champs'),
+    (8, 'Hour Record');
 
 -- Insert some sample nationalities
 INSERT
