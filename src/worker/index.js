@@ -234,13 +234,13 @@ router.get('/auth/callback/reddit', async (request, env) => {
     }
 
     // Set session cookie and redirect to team builder
-    let response = Response.redirect('/team-builder', 302)
+    let response = Response.redirect('http://localhost:8000/team-builder', 302)
     response = setSessionCookie(response, sessionData)
     
     return response
   } catch (error) {
     console.error('Reddit OAuth error:', error)
-    return Response.redirect('/?error=auth_failed', 302)
+    return Response.redirect('http://localhost:8000/?error=auth_failed', 302)
   }
 })
 
