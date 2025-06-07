@@ -28,7 +28,7 @@ const {console} = globalThis
 const Races = () => {
   const [races, setRaces] = useState([])
   const [loading, setLoading] = useState(true)
-  const [year, setYear] = useState(2024)
+  const [year, setYear] = useState(2025)
   const [sex, setSex] = useState('m')
 
   useEffect(() => {
@@ -78,8 +78,7 @@ const Races = () => {
               value={year}
               onChange={e => setYear(parseInt(e.target.value))}
               style={{marginLeft: '5px'}}>
-              <option value={2024}>2024</option>
-              <option value={2023}>2023</option>
+              <option value={2025}>2025</option>
             </select>
           </label>
 
