@@ -125,10 +125,6 @@ const Races = () => {
                         Start Date
                       </th>
                       <th
-                        style={{padding: '10px', border: '1px solid #ddd', textAlign: 'left'}}>
-                        End Date
-                      </th>
-                      <th
                         style={{padding: '10px', border: '1px solid #ddd', textAlign: 'center'}}>
                         Results
                       </th>
@@ -144,9 +140,6 @@ const Races = () => {
                         </td>
                         <td style={{padding: '10px', border: '1px solid #ddd'}}>
                           {race.start_date ? new Date(race.start_date).toLocaleDateString() : 'TBD'}
-                        </td>
-                        <td style={{padding: '10px', border: '1px solid #ddd'}}>
-                          {race.end_date ? new Date(race.end_date).toLocaleDateString() : 'TBD'}
                         </td>
                         <td
                           style={{padding: '10px', border: '1px solid #ddd', textAlign: 'center'}}>
