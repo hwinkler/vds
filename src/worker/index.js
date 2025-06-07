@@ -95,11 +95,29 @@ const corsHeaders = {
 
 // Auth middleware helper
 function requireAuth(request) {
-  const playerId = request.headers.get('x-player-id')
-  if (!playerId) {
-    throw new Error('Authentication required')
+  const sessionData = getSessionFromRequest(request)
+  
+  if (!sessionData) {
+    throw new Error('Authentication required - no session')
   }
-  return parseInt(playerId)
+
+  try {
+    const session = JSON.parse(decodeURIComponent(sessionData))
+    
+    // Check if session is valid (not expired)
+    const maxAge = 30 * 24 * 60 * 60 * 1000 // 30 days in ms
+    if (Date.now() - session.created_at > maxAge) {
+      throw new Error('Authentication required - session expired')
+    }
+    
+    if (!session.reddit_id || !session.authenticated) {
+      throw new Error('Authentication required - invalid session')
+    }
+    
+    return session.reddit_id // Return reddit_id instead of player_id
+  } catch (error) {
+    throw new Error('Authentication required - invalid session data')
+  }
 }
 
 // Helper function to handle errors
@@ -118,6 +136,160 @@ router.get('/health', async () => {
     timestamp: new Date().toISOString(),
     service: 'VDS Full-Stack Worker'
   }, { headers: corsHeaders })
+})
+
+// Session management helpers
+function getSessionFromRequest(request) {
+  const cookies = request.headers.get('Cookie') || ''
+  const sessionMatch = cookies.match(/reddit_session=([^;]+)/)
+  return sessionMatch ? sessionMatch[1] : null
+}
+
+function setSessionCookie(response, sessionData) {
+  const sessionValue = encodeURIComponent(JSON.stringify(sessionData))
+  const cookieOptions = [
+    `reddit_session=${sessionValue}`,
+    'HttpOnly',
+    'SameSite=Lax', 
+    'Path=/',
+    'Max-Age=2592000' // 30 days
+  ]
+  
+  // Only add Secure in production
+  if (typeof process !== 'undefined' && process.env.NODE_ENV === 'production') {
+    cookieOptions.push('Secure')
+  }
+  
+  response.headers.set('Set-Cookie', cookieOptions.join('; '))
+  return response
+}
+
+// Reddit OAuth routes
+router.get('/auth/reddit', async (request, env) => {
+  const state = crypto.randomUUID()
+  const scope = 'identity'
+  
+  const authUrl = new URL('https://www.reddit.com/api/v1/authorize')
+  authUrl.searchParams.set('client_id', env.REDDIT_CLIENT_ID)
+  authUrl.searchParams.set('response_type', 'code')
+  authUrl.searchParams.set('state', state)
+  authUrl.searchParams.set('redirect_uri', 'http://localhost:8000/auth/callback/reddit')
+  authUrl.searchParams.set('duration', 'temporary')
+  authUrl.searchParams.set('scope', scope)
+
+  return Response.redirect(authUrl.toString(), 302)
+})
+
+router.get('/auth/callback/reddit', async (request, env) => {
+  try {
+    const url = new URL(request.url)
+    const code = url.searchParams.get('code')
+    const state = url.searchParams.get('state')
+    
+    if (!code) {
+      throw new Error('No authorization code received')
+    }
+
+    // Exchange code for access token
+    const tokenResponse = await fetch('https://www.reddit.com/api/v1/access_token', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${btoa(`${env.REDDIT_CLIENT_ID}:${env.REDDIT_CLIENT_SECRET}`)}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'VDS:v1.0 (by /u/yourusername)'
+      },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: 'http://localhost:8000/auth/callback/reddit'
+      })
+    })
+
+    if (!tokenResponse.ok) {
+      throw new Error('Failed to exchange code for token')
+    }
+
+    const tokenData = await tokenResponse.json()
+    
+    // Get user info from Reddit
+    const userResponse = await fetch('https://oauth.reddit.com/api/v1/me', {
+      headers: {
+        'Authorization': `Bearer ${tokenData.access_token}`,
+        'User-Agent': 'VDS:v1.0 (by /u/yourusername)'
+      }
+    })
+
+    if (!userResponse.ok) {
+      throw new Error('Failed to get user info')
+    }
+
+    const userData = await userResponse.json()
+    
+    // Create session data
+    const sessionData = {
+      reddit_id: userData.id,
+      reddit_username: userData.name,
+      authenticated: true,
+      created_at: Date.now()
+    }
+
+    // Set session cookie and redirect to team builder
+    let response = Response.redirect('/team-builder', 302)
+    response = setSessionCookie(response, sessionData)
+    
+    return response
+  } catch (error) {
+    console.error('Reddit OAuth error:', error)
+    return Response.redirect('/?error=auth_failed', 302)
+  }
+})
+
+// Check authentication status
+router.get('/auth/me', async (request, env) => {
+  try {
+    const sessionData = getSessionFromRequest(request)
+    
+    if (!sessionData) {
+      return Response.json({ error: 'Not authenticated' }, { 
+        status: 401, 
+        headers: corsHeaders 
+      })
+    }
+
+    const session = JSON.parse(decodeURIComponent(sessionData))
+    
+    // Check if session is valid (not expired)
+    const maxAge = 30 * 24 * 60 * 60 * 1000 // 30 days in ms
+    if (Date.now() - session.created_at > maxAge) {
+      return Response.json({ error: 'Session expired' }, { 
+        status: 401, 
+        headers: corsHeaders 
+      })
+    }
+    
+    return Response.json({
+      reddit_id: session.reddit_id,
+      reddit_username: session.reddit_username,
+      authenticated: true
+    }, { headers: corsHeaders })
+    
+  } catch (error) {
+    console.error('Auth check error:', error)
+    return Response.json({ error: 'Invalid session' }, { 
+      status: 401, 
+      headers: corsHeaders 
+    })
+  }
+})
+
+// Logout route
+router.post('/auth/logout', async (request, env) => {
+  let response = Response.json({ success: true }, { headers: corsHeaders })
+  
+  // Clear the session cookie
+  response.headers.set('Set-Cookie', 'reddit_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0')
+  
+  return response
 })
 
 // Get all games
@@ -506,8 +678,8 @@ export default {
     }
 
     try {
-      // Try API routes first if path starts with /api/ or /health
-      if (url.pathname.startsWith('/api/') || url.pathname === '/health') {
+      // Try API and auth routes first
+      if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/') || url.pathname === '/health') {
         const apiResponse = await router.handle(request, env)
         if (apiResponse) {
           return apiResponse
