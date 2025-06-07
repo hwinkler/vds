@@ -244,6 +244,7 @@ const TeamBuilder = () => {
 
         <nav style={{marginBottom: '20px', padding: '10px', backgroundColor: '#f5f5f5'}}>
           <Link to="/" style={{marginRight: '20px'}}>Home</Link>
+          <Link to="/team-builder" style={{marginRight: '20px'}}>Team Builder</Link>
           <Link to="/all-riders" style={{marginRight: '20px'}}>All Riders</Link>
           <Link to="/races" style={{marginRight: '20px'}}>Races</Link>
           <Link to="/team-results" style={{marginRight: '20px'}}>My Team Results</Link>
