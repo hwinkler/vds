@@ -26,25 +26,72 @@ import {api} from '../lib/api-config.mjs'
 
 const {console} = globalThis
 
-const TeamResults = () => {
+const Team = () => {
   const [team, setTeam] = useState(null)
+  const [teams, setTeams] = useState([])
   const [loading, setLoading] = useState(true)
+  const [teamsLoading, setTeamsLoading] = useState(true)
   const [year, setYear] = useState(2025)
   const [sex, setSex] = useState('m')
+  const [selectedTeamId, setSelectedTeamId] = useState(null)
+  const [user, setUser] = useState(null)
   const [sortBy, setSortBy] = useState('total_score')
   const [sortOrder, setSortOrder] = useState('desc')
 
-  // Mock player ID - in real app this would come from authentication
-  const playerId = 1
-
+  // Check authentication status
   useEffect(() => {
-    const fetchTeamResults = async () => {
+    const checkAuth = async () => {
+      try {
+        const authUser = await api.get('/auth/me')
+        setUser(authUser)
+      } catch (error) {
+        // Not authenticated, that's okay for this page
+        setUser(null)
+      }
+    }
+    checkAuth()
+  }, [])
+
+  // Fetch all teams for the dropdown
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        setTeamsLoading(true)
+        const data = await api.get(`/api/teams/${year}/${sex}/rankings`)
+        // sort teams by player_name
+        data.sort((a, b) => a.player_name.localeCompare(b.player_name))
+        setTeams(data)
+        
+        // Auto-select current user's team if logged in
+        if (user && data.length > 0) {
+          const userTeam = data.find(t => t.player_name === user.player_name)
+          if (userTeam) {
+            setSelectedTeamId(userTeam.team_id)
+          } else if (!selectedTeamId) {
+            setSelectedTeamId(data[0].team_id)
+          }
+        } else if (!selectedTeamId && data.length > 0) {
+          setSelectedTeamId(data[0].team_id)
+        }
+      } catch (error) {
+        console.error('Error fetching teams:', error)
+      } finally {
+        setTeamsLoading(false)
+      }
+    }
+
+    fetchTeams()
+  }, [year, sex, user])
+
+  // Fetch selected team details
+  useEffect(() => {
+    const fetchTeam = async () => {
+      if (!selectedTeamId) return
+      
       try {
         setLoading(true)
-        const data = await api.get(`/api/team/${year}/${sex}`, {
-          headers: {'x-player-id': playerId.toString()}
-        })
-
+        // Get team details by team_id - we'll need a new API endpoint for this
+        const data = await api.get(`/api/team/details/${selectedTeamId}`)
         setTeam(data)
       } catch (error) {
         console.error('Error fetching team results:', error)
@@ -54,8 +101,8 @@ const TeamResults = () => {
       }
     }
 
-    fetchTeamResults()
-  }, [year, sex])
+    fetchTeam()
+  }, [selectedTeamId])
 
 
   const handleSort = column => {
@@ -98,14 +145,14 @@ const TeamResults = () => {
   return (
     <Layout>
       <div style={{padding: '20px'}}>
-        <h1>My Team Results</h1>
+        <h1>Team</h1>
 
         <nav style={{marginBottom: '20px', padding: '10px', backgroundColor: '#f5f5f5'}}>
           <Link to="/" style={{marginRight: '20px'}}>Home</Link>
           <Link to="/team-builder" style={{marginRight: '20px'}}>Team Builder</Link>
           <Link to="/all-riders" style={{marginRight: '20px'}}>All Riders</Link>
           <Link to="/races" style={{marginRight: '20px'}}>Races</Link>
-          <Link to="/team-results" style={{marginRight: '20px'}}>My Team Results</Link>
+          <Link to="/team" style={{marginRight: '20px'}}>Teams</Link>
         </nav>
 
         <div style={{marginBottom: '20px'}}>
@@ -119,11 +166,32 @@ const TeamResults = () => {
             </select>
           </label>
 
-          <label>
+          <label style={{marginRight: '20px'}}>
             Category:
             <select value={sex} onChange={e => setSex(e.target.value)} style={{marginLeft: '5px'}}>
               <option value="m">Men</option>
               <option value="f">Women</option>
+            </select>
+          </label>
+
+          <label>
+            Team:
+            <select 
+              value={selectedTeamId || ''} 
+              onChange={e => setSelectedTeamId(parseInt(e.target.value))}
+              style={{marginLeft: '5px', width: '30ch'}}
+              disabled={teamsLoading}>
+              {teamsLoading ? (
+                <option>Loading teams...</option>
+              ) : teams.length === 0 ? (
+                <option>No teams found</option>
+              ) : (
+                teams.map(team => (
+                  <option key={team.team_id} value={team.team_id}>
+                    {team.player_name} - {team.team_name}
+                  </option>
+                ))
+              )}
             </select>
           </label>
         </div>
@@ -229,6 +297,6 @@ const TeamResults = () => {
   )
 }
 
-export const Head = () => <Seo title="My Team Results" />
+export const Head = () => <Seo title="Team" />
 
-export default TeamResults
+export default Team

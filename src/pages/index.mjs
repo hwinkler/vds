@@ -84,7 +84,7 @@ const IndexPage = () => {
           <Link to="/team-builder" style={{marginRight: '20px'}}>Team Builder</Link>
           <Link to="/all-riders" style={{marginRight: '20px'}}>All Riders</Link>
           <Link to="/races" style={{marginRight: '20px'}}>Races</Link>
-          <Link to="/team-results" style={{marginRight: '20px'}}>My Team Results</Link>
+          <Link to="/team" style={{marginRight: '20px'}}>Teams</Link>
         </nav>
 
         <div style={{marginBottom: '20px'}}>
@@ -133,7 +133,7 @@ const IndexPage = () => {
                   style={{backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white'}}>
                   <td style={{padding: '10px', border: '1px solid #ddd'}}>{team.player_name}</td>
                   <td style={{padding: '10px', border: '1px solid #ddd'}}>
-                    <Link to={`/team-results?team_id=${team.team_id}`}>
+                    <Link to={`/team?team_id=${team.team_id}`}>
                       {team.team_name}
                     </Link>
                   </td>

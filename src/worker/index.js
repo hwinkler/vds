@@ -309,6 +309,26 @@ router.get('/auth/callback/reddit', async (request, env) => {
     ).bind('reddit', userData.id).first() // Using userData.id (Reddit user ID) as oauth_id
     
     if (!player) {
+      // If there is a player whose player_name matches the Reddit username, and if 
+      // the player has no oauth_id set, we can update that player instead
+      const existingPlayer = await env.DB.prepare(
+        'SELECT * FROM player WHERE player_name = ? AND oauth_id IS NULL'
+      ).bind(userData.name).first()
+      if (existingPlayer) {
+        console.log(`🔄 Updating existing player with Reddit ID: ${userData.id}`)
+        await env.DB.prepare(
+          'UPDATE player SET oauth_provider = ?, oauth_id = ? WHERE player_id = ?'
+        ).bind('reddit', userData.id, existingPlayer.player_id).run()
+        
+        // Use the updated player
+        player = { ...existingPlayer, oauth_provider: 'reddit', oauth_id: userData.id }
+      }
+      // If no existing player found, create a new one
+      if (!player) {
+        console.log(`❗ No existing player found for Reddit user: ${userData.name}, creating new player...`)
+      }
+      // If we reach here, it means we need to create a new player
+
       // Create new player
       console.log(`✨ Creating new player for Reddit user: ${userData.name} (ID: ${userData.id})`)
       const result = await env.DB.prepare(
@@ -543,16 +563,63 @@ router.get('/api/teams/:year/:sex/rankings', async (request, env, params) => {
   }
 })
 
-// Get player's team
+// Get team details by team ID
+router.get('/api/team/details/:teamId', async (request, env, params) => {
+  try {
+    const { teamId } = params
+
+    // Get team by ID
+    const teamQuery = await env.DB.prepare(
+      'SELECT * FROM player_team WHERE team_id = ?'
+    ).bind(parseInt(teamId)).first()
+
+    if (!teamQuery) {
+      return Response.json(null, { headers: corsHeaders })
+    }
+
+    // Get team roster
+    const rosterSql = `SELECT ptr.*, r.price, r.pro_team_name, r.nationality, 
+                              p.acronym as team_acronym
+                       FROM player_team_roster ptr 
+                       JOIN rider r ON ptr.rider_name = r.rider_name 
+                                    AND ptr.sex = r.sex AND ptr.year = r.year
+                       JOIN pro_team p ON r.pro_team_name = p.pro_team_name 
+                                       AND r.year = p.year AND r.sex = p.sex
+                       WHERE ptr.team_id = ?
+                       ORDER BY r.price DESC, r.rider_name`
+
+    const { results: roster } = await env.DB.prepare(rosterSql).bind(teamQuery.team_id).all()
+
+    return Response.json({ ...teamQuery, roster }, { headers: corsHeaders })
+  } catch (error) {
+    return handleError(error)
+  }
+})
+
+// Get player's team (optionally authenticated)
 router.get('/api/team/:year/:sex', async (request, env, params) => {
   try {
-    const playerId = requireAuth(request)
     const { year, sex } = params
-
-    // Get player team
-    const teamQuery = await env.DB.prepare(
-      'SELECT * FROM player_team WHERE player_id = ? AND sex = ? AND year = ?'
-    ).bind(playerId, sex, parseInt(year)).first()
+    let teamQuery = null
+    
+    // Try to get the logged-in user's team if they have a session
+    try {
+      const sessionData = getSessionFromRequest(request)
+      if (sessionData) {
+        const session = JSON.parse(decodeURIComponent(sessionData))
+        
+        // Check if session is valid (not expired)
+        const maxAge = 30 * 24 * 60 * 60 * 1000 // 30 days in ms
+        if (Date.now() - session.created_at <= maxAge && session.player_id) {
+          // Get logged-in player's team
+          teamQuery = await env.DB.prepare(
+            'SELECT * FROM player_team WHERE player_id = ? AND sex = ? AND year = ?'
+          ).bind(session.player_id, sex, parseInt(year)).first()
+        }
+      }
+    } catch (sessionError) {
+      // No session or invalid session - that's fine, return null
+    }
 
     if (!teamQuery) {
       return Response.json(null, { headers: corsHeaders })

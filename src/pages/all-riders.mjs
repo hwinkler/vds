@@ -67,7 +67,7 @@ const AllRiders = () => {
           <Link to="/team-builder" style={{marginRight: '20px'}}>Team Builder</Link>
           <Link to="/all-riders" style={{marginRight: '20px'}}>All Riders</Link>
           <Link to="/races" style={{marginRight: '20px'}}>Races</Link>
-          <Link to="/team-results" style={{marginRight: '20px'}}>My Team Results</Link>
+          <Link to="/team" style={{marginRight: '20px'}}>Teams</Link>
         </nav>
 
         <div style={{marginBottom: '20px'}}>
