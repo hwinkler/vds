@@ -143,12 +143,26 @@ const Team = () => {
       <div style={{padding: '20px'}}>
         <h1>Team</h1>
 
-        <nav style={{marginBottom: '20px', padding: '10px', backgroundColor: '#f5f5f5'}}>
-          <Link to="/" style={{marginRight: '20px'}}>Home</Link>
-          <Link to="/team-builder" style={{marginRight: '20px'}}>Team Builder</Link>
-          <Link to="/all-riders" style={{marginRight: '20px'}}>All Riders</Link>
-          <Link to="/races" style={{marginRight: '20px'}}>Races</Link>
-          <Link to="/team" style={{marginRight: '20px'}}>Teams</Link>
+        <nav style={{marginBottom: '20px', padding: '10px', backgroundColor: '#f5f5f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+          <div>
+            <Link to="/" style={{marginRight: '20px'}}>Home</Link>
+            <Link to="/team-builder" style={{marginRight: '20px'}}>Team Builder</Link>
+            <Link to="/all-riders" style={{marginRight: '20px'}}>All Riders</Link>
+            <Link to="/races" style={{marginRight: '20px'}}>Races</Link>
+            <Link to="/team" style={{marginRight: '20px'}}>Teams</Link>
+          </div>
+          {user ? (
+            <span style={{fontSize: '16px', fontWeight: 'bold', color: '#7026b9'}}>
+              Welcome, {user.player_name}!
+            </span>
+          ) : (
+            <a 
+              href="/auth/reddit" 
+              style={{fontSize: '16px', fontWeight: 'bold', color: '#2196f3', textDecoration: 'none'}}
+            >
+              Login
+            </a>
+          )}
         </nav>
 
         <div style={{marginBottom: '20px'}}>

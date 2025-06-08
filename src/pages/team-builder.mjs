@@ -243,9 +243,18 @@ const TeamBuilder = () => {
             <Link to="/races" style={{marginRight: '20px'}}>Races</Link>
             <Link to="/team" style={{marginRight: '20px'}}>Teams</Link>
           </div>
-          <span style={{fontSize: '16px', fontWeight: 'bold', color: '#7026b9'}}>
-            Welcome, {user.player_name}!
-          </span>
+          {user ? (
+            <span style={{fontSize: '16px', fontWeight: 'bold', color: '#7026b9'}}>
+              Welcome, {user.player_name}!
+            </span>
+          ) : (
+            <a 
+              href="/auth/reddit" 
+              style={{fontSize: '16px', fontWeight: 'bold', color: '#2196f3', textDecoration: 'none'}}
+            >
+              Login
+            </a>
+          )}
         </nav>
 
         <div style={{marginBottom: '20px'}}>

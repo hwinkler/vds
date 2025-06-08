@@ -30,6 +30,20 @@ const Races = () => {
   const [loading, setLoading] = useState(true)
   const [year, setYear] = useState(2025)
   const [sex, setSex] = useState('m')
+  const [user, setUser] = useState(null)
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const authUser = await api.get('/auth/me')
+        setUser(authUser)
+      } catch (error) {
+        setUser(null)
+      }
+    }
+    checkAuth()
+  }, [])
 
   useEffect(() => {
     const fetchRaces = async () => {
@@ -64,12 +78,26 @@ const Races = () => {
       <div style={{padding: '20px'}}>
         <h1>Races</h1>
 
-        <nav style={{marginBottom: '20px', padding: '10px', backgroundColor: '#f5f5f5'}}>
-          <Link to="/" style={{marginRight: '20px'}}>Home</Link>
-          <Link to="/team-builder" style={{marginRight: '20px'}}>Team Builder</Link>
-          <Link to="/all-riders" style={{marginRight: '20px'}}>All Riders</Link>
-          <Link to="/races" style={{marginRight: '20px'}}>Races</Link>
-          <Link to="/team" style={{marginRight: '20px'}}>Teams</Link>
+        <nav style={{marginBottom: '20px', padding: '10px', backgroundColor: '#f5f5f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+          <div>
+            <Link to="/" style={{marginRight: '20px'}}>Home</Link>
+            <Link to="/team-builder" style={{marginRight: '20px'}}>Team Builder</Link>
+            <Link to="/all-riders" style={{marginRight: '20px'}}>All Riders</Link>
+            <Link to="/races" style={{marginRight: '20px'}}>Races</Link>
+            <Link to="/team" style={{marginRight: '20px'}}>Teams</Link>
+          </div>
+          {user ? (
+            <span style={{fontSize: '16px', fontWeight: 'bold', color: '#7026b9'}}>
+              Welcome, {user.player_name}!
+            </span>
+          ) : (
+            <a 
+              href="/auth/reddit" 
+              style={{fontSize: '16px', fontWeight: 'bold', color: '#2196f3', textDecoration: 'none'}}
+            >
+              Login
+            </a>
+          )}
         </nav>
 
         <div style={{marginBottom: '20px'}}>
