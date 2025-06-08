@@ -118,11 +118,7 @@ const Team = () => {
   let totalTeamScore = 0
 
   if (team && team.roster) {
-    // Calculate scores for each rider (mocked for now)
-    const rosterWithScores = team.roster.map(rider => ({
-      ...rider,
-      total_score: Math.floor(Math.random() * 100) // Mock score - replace with actual scoring
-    }))
+    const rosterWithScores = team.roster
 
     totalTeamScore = rosterWithScores.reduce((sum, rider) => sum + rider.total_score, 0)
 

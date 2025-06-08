@@ -577,9 +577,14 @@ router.get('/api/team/details/:teamId', async (request, env, params) => {
       return Response.json(null, { headers: corsHeaders })
     }
 
-    // Get team roster
+    // Get team roster with points
     const rosterSql = `SELECT ptr.*, r.price, r.pro_team_name, r.nationality, 
-                              p.acronym as team_acronym
+                              p.acronym as team_acronym,
+                              COALESCE(
+                                (SELECT SUM(f.points_awarded) FROM finisher f WHERE f.rider_name = ptr.rider_name AND f.sex = ptr.sex AND f.year = ptr.year), 0
+                              ) + COALESCE(
+                                (SELECT SUM(j.points_awarded) FROM jersey_holder j WHERE j.rider_name = ptr.rider_name AND j.sex = ptr.sex AND j.year = ptr.year), 0
+                              ) as total_score
                        FROM player_team_roster ptr 
                        JOIN rider r ON ptr.rider_name = r.rider_name 
                                     AND ptr.sex = r.sex AND ptr.year = r.year
