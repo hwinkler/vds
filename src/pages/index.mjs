@@ -102,9 +102,9 @@ const IndexPage = () => {
             <Link to="/team" style={{marginRight: '20px'}}>Teams</Link>
           </div>
           {user ? (
-            <span style={{fontSize: '16px', fontWeight: 'bold', color: '#7026b9'}}>
+            <Link to="/profile" style={{fontSize: '16px', fontWeight: 'bold', color: '#7026b9', textDecoration: 'none'}}>
               Welcome, {user.player_name}!
-            </span>
+            </Link>
           ) : (
             <a 
               href="/auth/reddit" 
